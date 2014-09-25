@@ -954,6 +954,10 @@ static int __init acpi_bus_init(void)
 	status = acpi_ec_ecdt_probe();
 	/* Ignore result. Not having an ECDT is not fatal. */
 
+	/*
+	 * _OSC method may exist in module level code,
+	 * so it must be run after ACPI_FULL_INITIALIZATION
+	 */
 	acpi_bus_osc_support();
 
 	status = acpi_initialize_objects(ACPI_FULL_INITIALIZATION);

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -49,21 +49,22 @@ static const struct input_device_id usfc_tsc_ids[] = {
 MODULE_DEVICE_TABLE(input, usfc_tsc_ids);
 
 static struct input_handler s_usfc_handlers[MAX_EVENT_TYPE_NUM] = {
-	{ 
+	{ /* TSC handler */
 		.filter         = usfcdev_filter,
 		.match          = usfcdev_match,
 		.connect        = usfcdev_connect,
 		.disconnect     = usfcdev_disconnect,
-		
-		
+		/* .minor can be used as index in the container, */
+		/*  because .fops isn't supported */
 		.minor          = TSC_EVENT_TYPE_IND,
 		.name           = "usfc_tsc_handler",
 		.id_table       = usfc_tsc_ids,
 	},
 };
 
+/* For each event type, one conflicting device (and handle) is supported */
 static struct input_handle s_usfc_handles[MAX_EVENT_TYPE_NUM] = {
-	{ 
+	{ /* TSC handle */
 		.handler	= &s_usfc_handlers[TSC_EVENT_TYPE_IND],
 		.name		= "usfc_tsc_handle",
 	},
@@ -75,12 +76,12 @@ static bool usfcdev_match(struct input_handler *handler, struct input_dev *dev)
 	int ind = handler->minor;
 
 	pr_debug("%s: name=[%s]; ind=%d\n", __func__, dev->name, ind);
+
 	if (s_usfcdev_events[ind].registered_event &&
 			s_usfcdev_events[ind].match_cb) {
 		rc = (*s_usfcdev_events[ind].match_cb)((uint16_t)ind, dev);
 		pr_debug("%s: [%s]; rc=%d\n", __func__, dev->name, rc);
 	}
-
 	return rc;
 }
 

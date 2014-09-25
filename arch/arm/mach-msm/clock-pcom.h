@@ -1,4 +1,4 @@
-/* Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2009-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -131,10 +131,10 @@ int pc_clk_reset(unsigned id, enum clk_reset_action action);
 	.clk = &(struct clk){ \
 		.id = P_##clk_id, \
 		.remote_id = P_##clk_id, \
-		.ops = &clk_ops_pcom, \
-		.flags = clk_flags, \
-		.dbg_name = #clk_id, \
-	}, \
+			.ops = &clk_ops_pcom, \
+			.flags = clk_flags, \
+			.dbg_name = #clk_id, \
+		}, \
 	}
 
 #endif

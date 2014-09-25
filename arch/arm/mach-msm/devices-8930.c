@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -445,15 +445,6 @@ struct platform_device *msm8930_footswitch[] __initdata = {
 };
 unsigned msm8930_num_footswitch __initdata = ARRAY_SIZE(msm8930_footswitch);
 
-struct platform_device apq_cpudai_pri_i2s_rx = {
-	.name = "msm-dai-q6",
-	.id = 0,
-};
-
-struct platform_device apq_cpudai_pri_i2s_tx = {
-	.name = "msm-dai-q6",
-	.id = 1,
-};
 
 #ifdef CONFIG_MSM_BUS_SCALING
 static struct msm_bus_vectors vidc_init_vectors[] = {
@@ -586,6 +577,9 @@ static struct msm_bus_vectors vidc_vdec_720p_vectors[] = {
 		.ib  = 7000000,
 	},
 };
+/*This value is modified because internally we use
+ * lower value. But OEM has increased it. This is correct value
+ * for oem*/
 static struct msm_bus_vectors vidc_venc_1080p_vectors[] = {
 	{
 		.src = MSM_BUS_MASTER_HD_CODEC_PORT0,
@@ -639,56 +633,56 @@ static struct msm_bus_vectors vidc_vdec_1080p_vectors[] = {
 	},
 };
 static struct msm_bus_vectors vidc_venc_turbo_vectors[] = {
-        {
-                .src = MSM_BUS_MASTER_HD_CODEC_PORT0,
-                .dst = MSM_BUS_SLAVE_EBI_CH0,
-                .ab  = 372244480,
-                .ib  = 3200000000U,
-        },
-        {
-                .src = MSM_BUS_MASTER_HD_CODEC_PORT1,
-                .dst = MSM_BUS_SLAVE_EBI_CH0,
-                .ab  = 501219328,
-                .ib  = 3200000000U,
-        },
-        {
-                .src = MSM_BUS_MASTER_AMPSS_M0,
-                .dst = MSM_BUS_SLAVE_EBI_CH0,
-                .ab  = 2500000,
-                .ib  = 5000000,
-        },
-        {
-                .src = MSM_BUS_MASTER_AMPSS_M0,
-                .dst = MSM_BUS_SLAVE_EBI_CH0,
-                .ab  = 2500000,
-                .ib  = 5000000,
-        },
+	{
+		.src = MSM_BUS_MASTER_HD_CODEC_PORT0,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 372244480,
+		.ib  = 3200000000U,
+	},
+	{
+		.src = MSM_BUS_MASTER_HD_CODEC_PORT1,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 501219328,
+		.ib  = 3200000000U,
+	},
+	{
+		.src = MSM_BUS_MASTER_AMPSS_M0,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 2500000,
+		.ib  = 5000000,
+	},
+	{
+		.src = MSM_BUS_MASTER_AMPSS_M0,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 2500000,
+		.ib  = 5000000,
+	},
 };
 static struct msm_bus_vectors vidc_vdec_turbo_vectors[] = {
-        {
-                .src = MSM_BUS_MASTER_HD_CODEC_PORT0,
-                .dst = MSM_BUS_SLAVE_EBI_CH0,
-                .ab  = 222298112,
-                .ib  = 3200000000U,
-        },
-        {
-                .src = MSM_BUS_MASTER_HD_CODEC_PORT1,
-                .dst = MSM_BUS_SLAVE_EBI_CH0,
-                .ab  = 330301440,
-                .ib  = 3200000000U,
-        },
-        {
-                .src = MSM_BUS_MASTER_AMPSS_M0,
-                .dst = MSM_BUS_SLAVE_EBI_CH0,
-                .ab  = 2500000,
-                .ib  = 700000000,
-        },
-        {
-                .src = MSM_BUS_MASTER_AMPSS_M0,
-                .dst = MSM_BUS_SLAVE_EBI_CH0,
-                .ab  = 2500000,
-                .ib  = 10000000,
-        },
+	{
+		.src = MSM_BUS_MASTER_HD_CODEC_PORT0,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 222298112,
+		.ib  = 3200000000U,
+	},
+	{
+		.src = MSM_BUS_MASTER_HD_CODEC_PORT1,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 330301440,
+		.ib  = 3200000000U,
+	},
+	{
+		.src = MSM_BUS_MASTER_AMPSS_M0,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 2500000,
+		.ib  = 700000000,
+	},
+	{
+		.src = MSM_BUS_MASTER_AMPSS_M0,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 2500000,
+		.ib  = 10000000,
+	},
 };
 static struct msm_bus_paths vidc_bus_client_config[] = {
 	{
@@ -719,14 +713,14 @@ static struct msm_bus_paths vidc_bus_client_config[] = {
 		ARRAY_SIZE(vidc_vdec_1080p_vectors),
 		vidc_vdec_1080p_vectors,
 	},
-        {
-                ARRAY_SIZE(vidc_venc_turbo_vectors),
-                vidc_venc_turbo_vectors,
-        },
-        {
-                ARRAY_SIZE(vidc_vdec_turbo_vectors),
-                vidc_vdec_turbo_vectors,
-        },
+	{
+		ARRAY_SIZE(vidc_venc_turbo_vectors),
+		vidc_venc_turbo_vectors,
+	},
+	{
+		ARRAY_SIZE(vidc_vdec_turbo_vectors),
+		vidc_vdec_turbo_vectors,
+	},
 };
 
 static struct msm_bus_scale_pdata vidc_bus_client_data = {
@@ -795,67 +789,67 @@ void __init msm8930_add_vidc_device(void)
 }
 
 struct msm_iommu_domain_name msm8930_iommu_ctx_names[] = {
-	
+	/* Camera */
 	{
 		.name = "vpe_src",
 		.domain = CAMERA_DOMAIN,
 	},
-	
+	/* Camera */
 	{
 		.name = "vpe_dst",
 		.domain = CAMERA_DOMAIN,
 	},
-	
+	/* Camera */
 	{
 		.name = "vfe_imgwr",
 		.domain = CAMERA_DOMAIN,
 	},
-	
+	/* Camera */
 	{
 		.name = "vfe_misc",
 		.domain = CAMERA_DOMAIN,
 	},
-	
+	/* Camera */
 	{
 		.name = "ijpeg_src",
 		.domain = CAMERA_DOMAIN,
 	},
-	
+	/* Camera */
 	{
 		.name = "ijpeg_dst",
 		.domain = CAMERA_DOMAIN,
 	},
-	
+	/* Camera */
 	{
 		.name = "jpegd_src",
 		.domain = CAMERA_DOMAIN,
 	},
-	
+	/* Camera */
 	{
 		.name = "jpegd_dst",
 		.domain = CAMERA_DOMAIN,
 	},
-	
+	/* Rotator */
 	{
 		.name = "rot_src",
 		.domain = ROTATOR_SRC_DOMAIN,
 	},
-	
+	/* Rotator */
 	{
 		.name = "rot_dst",
 		.domain = ROTATOR_SRC_DOMAIN,
 	},
-	
+	/* Video */
 	{
 		.name = "vcodec_a_mm1",
 		.domain = VIDEO_DOMAIN,
 	},
-	
+	/* Video */
 	{
 		.name = "vcodec_b_mm2",
 		.domain = VIDEO_DOMAIN,
 	},
-	
+	/* Video */
 	{
 		.name = "vcodec_a_stream",
 		.domain = VIDEO_DOMAIN,
@@ -863,20 +857,27 @@ struct msm_iommu_domain_name msm8930_iommu_ctx_names[] = {
 };
 
 static struct mem_pool msm8930_video_pools[] =  {
+	/*
+	 * Video hardware has the following requirements:
+	 * 1. All video addresses used by the video hardware must be at a higher
+	 *    address than video firmware address.
+	 * 2. Video hardware can only access a range of 256MB from the base of
+	 *    the video firmware.
+	*/
 	[VIDEO_FIRMWARE_POOL] =
-	
+	/* Low addresses, intended for video firmware */
 		{
 			.paddr	= SZ_128K,
 			.size	= SZ_16M - SZ_128K,
 		},
 	[VIDEO_MAIN_POOL] =
-	
+	/* Main video pool */
 		{
 			.paddr	= SZ_16M,
 			.size	= SZ_256M - SZ_16M,
 		},
 	[GEN_POOL] =
-	
+	/* Remaining address space up to 2G */
 		{
 			.paddr	= SZ_256M,
 			.size	= SZ_2G - SZ_256M,
@@ -885,7 +886,7 @@ static struct mem_pool msm8930_video_pools[] =  {
 
 static struct mem_pool msm8930_camera_pools[] =  {
 	[GEN_POOL] =
-	
+	/* One address space for camera */
 		{
 			.paddr	= SZ_128K,
 			.size	= SZ_2G - SZ_128K,
@@ -894,7 +895,7 @@ static struct mem_pool msm8930_camera_pools[] =  {
 
 static struct mem_pool msm8930_display_read_pools[] =  {
 	[GEN_POOL] =
-	
+	/* One address space for display reads */
 		{
 			.paddr	= SZ_128K,
 			.size	= SZ_2G - SZ_128K,
@@ -903,7 +904,7 @@ static struct mem_pool msm8930_display_read_pools[] =  {
 
 static struct mem_pool msm8930_rotator_src_pools[] =  {
 	[GEN_POOL] =
-	
+	/* One address space for rotator src */
 		{
 			.paddr	= SZ_128K,
 			.size	= SZ_2G - SZ_128K,
@@ -945,6 +946,16 @@ struct platform_device msm8930_iommu_domain_device = {
 	}
 };
 
+struct platform_device apq_cpudai_pri_i2s_rx = {
+	.name	= "msm-dai-q6",
+	.id	= 0,
+};
+
+struct platform_device apq_cpudai_pri_i2s_tx = {
+	.name	= "msm-dai-q6",
+	.id	= 1,
+};
+
 struct msm_rtb_platform_data msm8930_rtb_pdata = {
 	.size = SZ_1M,
 };
@@ -969,6 +980,10 @@ struct platform_device msm8930_rtb_device = {
 };
 
 #define MSM8930_L1_SIZE  SZ_1M
+/*
+ * The actual L2 size is smaller but we need a larger buffer
+ * size to store other dump information
+ */
 #define MSM8930_L2_SIZE  SZ_4M
 
 struct msm_cache_dump_platform_data msm8930_cache_dump_pdata = {

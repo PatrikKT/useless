@@ -1300,7 +1300,7 @@ config HTC_BATT8x60
 config HTC_BATT_8960
 	depends on HTC_BATT_CORE
 	default n
-	bool "HTC battery driver for 8960"
+	bool "HTC battery driver for MSM8960"
 
 config HTC_ONMODE_CHARGING
 	bool "On Mode Charging Icon Support"
@@ -1475,7 +1475,7 @@ config HTC_HEADSET_MGR
 	tristate "HTC headset manager driver"
 	default n
 	help
-	  Provides support of HTC headset manager.
+	  Provides support for HTC headset manager.
 
 config HTC_HEADSET_GPIO
 	tristate "HTC GPIO headset detection driver"
@@ -1489,7 +1489,7 @@ config HTC_HEADSET_PMIC
 	depends on HTC_HEADSET_MGR
 	default n
 	help
-	  Provides support of HTC PMIC headset detection.
+	  Provides support for HTC PMIC headset detection.
 
 config HTC_HEADSET_8X60
 	tristate "HTC 8X60 headset detection driver"
@@ -2204,7 +2204,7 @@ config HTC_HEADSET_ONE_WIRE
 	depends on HTC_HEADSET_MGR
 	default n
 	help
-	  Provides support of HTC 1-wire headset detection.
+	  Provides support for HTC 1-wire headset detection.
 
 config MSM_PIL
 	bool "Peripheral image loading"
@@ -3119,12 +3119,6 @@ config QSC_MODEM
         help
           Support for the QMC QSC Modem.
 
-config MACH_VILLEC2
-        depends on ARCH_MSM8X60
-        bool "VILLEC2"
-        help
-          Support for the HTC VILLEC2 device.
-
 config HTC_HEADSET_ONE_WIRE
 	tristate "HTC 1-wire headset detection driver"
 	depends on HTC_HEADSET_MGR
@@ -3192,4 +3186,3 @@ config IOEXTENDER
 	help
 	 To support IOEXTENDER feature
 endif
-

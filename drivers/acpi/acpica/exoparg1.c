@@ -1000,9 +1000,10 @@ acpi_status acpi_ex_opcode_1A_0T_1R(struct acpi_walk_state *walk_state)
 									return_desc);
 				}
 
-				/* Add another reference to the object! */
+						/* Add another reference to the object! */
 
-				acpi_ut_add_reference(return_desc);
+						acpi_ut_add_reference
+						    (return_desc);
 				break;
 
 			default:

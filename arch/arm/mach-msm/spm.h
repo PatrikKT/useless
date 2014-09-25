@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -124,32 +124,30 @@ struct msm_spm_platform_data {
 
 #if defined(CONFIG_MSM_SPM_V1) || defined(CONFIG_MSM_SPM_V2)
 
+/* Public functions */
 
 int msm_spm_set_low_power_mode(unsigned int mode, bool notify_rpm);
-
 int msm_spm_set_vdd(unsigned int cpu, unsigned int vlevel);
 
 int msm_spm_turn_on_cpu_rail(unsigned int cpu);
 
+/* Internal low power management specific functions */
 
 void msm_spm_reinit(void);
-
 int msm_spm_init(struct msm_spm_platform_data *data, int nr_devs);
-
 int msm_spm_device_init(void);
 
 #if defined(CONFIG_MSM_L2_SPM)
 
+/* Public functions */
 
 int msm_spm_l2_set_low_power_mode(unsigned int mode, bool notify_rpm);
-
 int msm_spm_apcs_set_vdd(unsigned int vlevel);
-
 int msm_spm_apcs_set_phase(unsigned int phase_cnt);
 
+/* Internal low power management specific functions */
 
 int msm_spm_l2_init(struct msm_spm_platform_data *data);
-
 void msm_spm_l2_reinit(void);
 
 #else
@@ -165,7 +163,7 @@ static inline int msm_spm_l2_init(struct msm_spm_platform_data *data)
 }
 static inline void msm_spm_l2_reinit(void)
 {
-	
+	/* empty */
 }
 
 static inline int msm_spm_apcs_set_vdd(unsigned int vlevel)
@@ -191,7 +189,7 @@ static inline int msm_spm_set_vdd(unsigned int cpu, unsigned int vlevel)
 
 static inline void msm_spm_reinit(void)
 {
-	
+	/* empty */
 }
 
 static inline int msm_spm_turn_on_cpu_rail(unsigned int cpu)
@@ -204,5 +202,5 @@ static inline int msm_spm_device_init(void)
 	return -ENOSYS;
 }
 
-#endif  
-#endif  
+#endif  /*defined(CONFIG_MSM_SPM_V1) || defined (CONFIG_MSM_SPM_V2) */
+#endif  /* __ARCH_ARM_MACH_MSM_SPM_H */

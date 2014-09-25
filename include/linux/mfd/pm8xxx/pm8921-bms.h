@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -117,14 +117,37 @@ extern struct pm8921_bms_battery_data  palladium_1500_data;
 extern struct pm8921_bms_battery_data  desay_5200_data;
 int pm8921_bms_get_vsense_avg(int *result);
 
+/**
+ * pm8921_bms_get_battery_current - return the battery current based on vsense
+ *				resitor in microamperes
+ * @result:	The pointer where the voltage will be updated. A -ve
+ *		result means that the current is flowing in
+ *		the battery - during battery charging
+ *
+ * RETURNS:	Error code if there was a problem reading vsense, Zero otherwise
+ *		The result won't be updated in case of an error.
+ *
+ */
 int pm8921_bms_get_battery_current(int *result);
 
+/**
+ * pm8921_bms_get_percent_charge - returns the current battery charge in percent
+ *
+ */
 int pm8921_bms_get_percent_charge(void);
 
 int pm8921_calculate_pj_level(int Vjk, int is_charging, int batt_temp);
-
+/**
+ * pm8921_bms_get_fcc - returns fcc in mAh of the battery depending on its age
+ *			and temperature
+ *
+ */
 int pm8921_bms_get_fcc(void);
-
+/**
+ * pm8921_bms_charging_end - function to notify the bms driver that charging
+ *				has stopped. Used by the bms driver to keep
+ *				track of chargecycles
+ */
 int pm8921_bms_charging_began(void);
 void pm8921_bms_charging_end(int is_battery_full);
 
@@ -133,6 +156,25 @@ int pm8921_bms_stop_ocv_updates(void);
 int pm8921_bms_start_ocv_updates(void);
 int pm8921_bms_get_simultaneous_battery_voltage_and_current(int *ibat_ua,
 								int *vbat_uv);
+
+/**
+ * pm8921_bms_get_simultaneous_battery_voltage_and_current
+ *		- function to take simultaneous vbat and vsense readings
+ *		  this puts the bms in override mode but keeps coulumb couting
+ *		  on. Useful when ir compensation needs to be implemented
+ */
+/**
+ * pm8921_bms_get_current_max
+ *	- function to get the max current that can be drawn from
+ *	  the battery before it dips below the min allowed voltage
+ */
+int pm8921_bms_get_current_max(void);
+/**
+ * pm8921_bms_invalidate_shutdown_soc - function to notify the bms driver that
+ *					the battery was replaced between reboot
+ *					and so it should not use the shutdown
+ *					soc stored in a coincell backed register
+ */
 int pm8921_bms_get_rbatt(void);
 void pm8921_bms_invalidate_shutdown_soc(void);
 int pm8921_bms_dump_all(void);

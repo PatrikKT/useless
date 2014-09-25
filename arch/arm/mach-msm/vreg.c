@@ -1,7 +1,7 @@
 /* arch/arm/mach-msm/vreg.c
  *
  * Copyright (C) 2008 Google, Inc.
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2012 The Linux Foundation. All rights reserved.
  * Author: Brian Swetland <swetland@google.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -163,9 +163,9 @@ static int vreg_debug_get(void *data, u64 *val)
 	struct vreg *vreg = data;
 
 	if (!vreg->status)
-		*val = 0;
+	*val = 0;
 	else
-		*val = 1;
+	*val = 1;
 
 	return 0;
 }

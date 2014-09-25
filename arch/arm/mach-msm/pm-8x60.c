@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -404,22 +404,33 @@ mode_sysfs_add_exit:
 	return ret;
 }
 
-
+/*
+ * Configure hardware registers in preparation for Apps power down.
+ */
 static void msm_pm_config_hw_before_power_down(void)
 {
 	return;
 }
 
+/*
+ * Clear hardware registers after Apps powers up.
+ */
 static void msm_pm_config_hw_after_power_up(void)
 {
 	return;
 }
 
+/*
+ * Configure hardware registers in preparation for SWFI.
+ */
 static void msm_pm_config_hw_before_swfi(void)
 {
 	return;
 }
 
+/*
+ * Configure/Restore hardware registers in preparation for Retention.
+ */
 
 
 #ifdef CONFIG_MSM_SLEEP_TIME_OVERRIDE
@@ -727,7 +738,7 @@ static bool msm_pm_power_collapse(bool from_idle)
 			pr_info("CPU%u: %s: restore clock rate to %lu\n",
 				cpu, __func__, saved_acpuclk_rate);
 		if (acpuclk_set_rate(cpu, saved_acpuclk_rate, SETRATE_PC) < 0)
-			pr_warn("CPU%u: %s: failed to restore clock rate(%lu)\n",
+			pr_err("CPU%u: %s: failed to restore clock rate(%lu)\n",
 				cpu, __func__, saved_acpuclk_rate);
 	} else {
 		unsigned int gic_dist_enabled;

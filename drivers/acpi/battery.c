@@ -95,6 +95,17 @@ enum {
 	ACPI_BATTERY_ALARM_PRESENT,
 	ACPI_BATTERY_XINFO_PRESENT,
 	ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
+	/* On Lenovo Thinkpad models from 2010 and 2011, the power unit
+	   switches between mWh and mAh depending on whether the system
+	   is running on battery or not.  When mAh is the unit, most
+	   reported values are incorrect and need to be adjusted by
+	   10000/design_voltage.  Verified on x201, t410, t410s, and x220.
+	   Pre-2010 and 2012 models appear to always report in mWh and
+	   are thus unaffected (tested with t42, t61, t500, x200, x300,
+	   and x230).  Also, in mid-2012 Lenovo issued a BIOS update for
+	   the 2011 models that fixes the issue (tested on x220 with a
+	   post-1.29 BIOS), but as of Nov. 2012, no such update is
+	   available for the 2010 models.  */
 };
 
 struct acpi_battery {

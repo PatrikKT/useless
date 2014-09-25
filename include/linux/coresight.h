@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -15,6 +15,7 @@
 
 #include <linux/device.h>
 
+/* Peripheral id registers (0xFD0-0xFEC) */
 #define CORESIGHT_PERIPHIDR4	(0xFD0)
 #define CORESIGHT_PERIPHIDR5	(0xFD4)
 #define CORESIGHT_PERIPHIDR6	(0xFD8)
@@ -23,6 +24,7 @@
 #define CORESIGHT_PERIPHIDR1	(0xFE4)
 #define CORESIGHT_PERIPHIDR2	(0xFE8)
 #define CORESIGHT_PERIPHIDR3	(0xFEC)
+/* Component id registers (0xFF0-0xFFC) */
 #define CORESIGHT_COMPIDR0	(0xFF0)
 #define CORESIGHT_COMPIDR1	(0xFF4)
 #define CORESIGHT_COMPIDR2	(0xFF8)

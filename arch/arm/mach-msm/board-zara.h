@@ -1,8 +1,9 @@
+#ifndef __ARCH_ARM_MACH_MSM_BOARD_ZARA_H__
+#define __ARCH_ARM_MACH_MSM_BOARD_ZARA_H__
+
 #include <mach/msm_memtypes.h>
 
 #define	GPIO(X)		(X)
-#ifndef __ARCH_ARM_MACH_MSM_BOARD_ZARA_H__
-#define __ARCH_ARM_MACH_MSM_BOARD_ZARA_H__
 
 
 #define MSM_LCD_TE					GPIO(0)
@@ -24,7 +25,7 @@
 #define MSM_TP_I2C_SDA				GPIO(16)
 #define MSM_TP_I2C_SCL				GPIO(17)
 #define MSM_V_AUD_HSMIC_2V85_EN		GPIO(18)
-#define MSM_USB_ID1					GPIO(19)
+#define MSM_USB_ID1				GPIO(19)
 #define MSM_CAM_I2C_SDA				GPIO(20)
 #define MSM_CAM_I2C_SCL				GPIO(21)
 #define MSM_NC_GPIO_22				GPIO(22)
@@ -179,12 +180,19 @@ extern struct msm_camera_board_info zara_camera_board_info_XA;
 extern struct msm_camera_board_info zara_camera_board_info_XB;
 extern struct platform_device zara_msm_rawchip_device;
 
-int __init zara_gpiomux_init(void);
-int __init zara_init_keypad(void);
-void zara_allocate_fb_region(void);
-void zara_mdp_writeback(struct memtype_reserve* reserve_table);
-int __init zara_init_mmc(void);
-int __init zara_wifi_init(void);
 void __init zara_init_cam(void);
 void zara_init_fb(void);
+int __init zara_init_mmc(void);
+int __init zara_gpiomux_init(void);
+void zara_allocate_fb_region(void);
+void zara_mdp_writeback(struct memtype_reserve* reserve_table);
+int __init zara_init_keypad(void);
+int __init zara_wifi_init(void);
 void zara_init_gpu(void);
+
+#ifdef CONFIG_MSM_RTB
+extern struct msm_rtb_platform_data msm8930_rtb_pdata;
+#endif
+#ifdef CONFIG_MSM_CACHE_DUMP
+extern struct msm_cache_dump_platform_data msm8930_cache_dump_pdata;
+#endif

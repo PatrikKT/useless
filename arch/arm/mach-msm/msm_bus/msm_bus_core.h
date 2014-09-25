@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -185,6 +185,11 @@ struct msm_bus_board_algorithm {
 	int (*get_iid)(int id);
 };
 
+/**
+ * Used to store the list of fabrics and other info to be
+ * maintained outside the fabric structure.
+ * Used while calculating path, and to find fabric ptrs
+ */
 struct msm_bus_fabnodeinfo {
 	struct list_head list;
 	struct msm_bus_inode_info *info;
@@ -230,4 +235,4 @@ static inline void msm_bus_dbg_commit_data(const char *fabname,
 }
 #endif
 
-#endif 
+#endif /*_ARCH_ARM_MACH_MSM_BUS_CORE_H*/

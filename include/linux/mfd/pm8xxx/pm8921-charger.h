@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -159,26 +159,88 @@ int pm8921_charger_register_vbus_sn(void (*callback)(int));
 void pm8921_charger_unregister_vbus_sn(void (*callback)(int));
 int pm8921_charger_enable(bool enable);
 
+/**
+ * pm8921_is_usb_chg_plugged_in - is usb plugged in
+ *
+ * if usb is under voltage or over voltage this will return false
+ */
 int pm8921_is_usb_chg_plugged_in(void);
 
+/**
+ * pm8921_is_dc_chg_plugged_in - is dc plugged in
+ *
+ * if dc is under voltage or over voltage this will return false
+ */
 int pm8921_is_dc_chg_plugged_in(void);
 
 int pm8921_is_pwr_src_plugged_in(void);
 
+/**
+ * pm8921_is_battery_present -
+ *
+ * returns if the pmic sees the battery present
+ */
 int pm8921_is_battery_present(void);
 
+/**
+ * pm8921_set_max_battery_charge_current - set max battery chg current
+ *
+ * @ma: max charge current in milliAmperes
+ */
 int pm8921_set_max_battery_charge_current(int ma);
 
+/**
+ * pm8921_disable_input_current_limt - disable input current limit
+ *
+ * @disable: disable input curren_limit limit
+ *
+ * Disabling the charge current limit causes current
+ * current limits to have no monitoring. An adequate charger
+ * capable of supplying high current while sustaining VIN_MIN
+ * is required if input current limiting is disabled.
+ */
 int pm8921_disable_input_current_limit(bool disable);
 
+/**
+ * pm8921_set_usb_power_supply_type - set USB supply type
+ *
+ * @type: power_supply_type enum
+ *
+ * This api lets one set a specific usb power_supply_type.
+ * USB drivers can distinguish between types of USB connections
+ * and set the appropriate type for the USB supply.
+ */
 
 int pm8921_set_usb_power_supply_type(enum power_supply_type type);
 
+/**
+ * pm8921_disable_source_current - disable drawing current from source
+ * @disable: true to disable current drawing from source false otherwise
+ *
+ * This function will stop all charging activities and disable any current
+ * drawn from the charger. The battery provides the system current.
+ */
 int pm8921_disable_source_current(bool disable);
 
+/**
+ * pm8921_regulate_input_voltage -
+ * @voltage: voltage in millivolts to regulate
+ *		allowable values are from 4300mV to 6500mV
+ */
 int pm8921_regulate_input_voltage(int voltage);
+/**
+ * pm8921_is_battery_charging -
+ * @source: when the battery is charging the source is updated to reflect which
+ *		charger, usb or dc, is charging the battery.
+ *
+ * RETURNS: bool, whether the battery is being charged or not
+ */
 bool pm8921_is_battery_charging(int *source);
 
+/**
+ * pm8921_batt_temperature - get battery temp in degC
+ *
+ */
 int pm8921_batt_temperature(void);
 int register_external_dc_charger(struct ext_chg_pm8921 *ext);
 
@@ -186,8 +248,23 @@ void unregister_external_dc_charger(struct ext_chg_pm8921 *ext);
 
 int pm8921_usb_ovp_set_threshold(enum pm8921_usb_ov_threshold ov);
 
+/**
+ * pm8921_usb_ovp_set_hystersis -
+ * @ms: the debounce time enum
+ *
+ * Sets the debounce time for usb insertion/removal detection
+ *
+ */
 int pm8921_usb_ovp_set_hystersis(enum pm8921_usb_debounce_time ms);
 
+/**
+ * pm8921_usb_ovp_disable -
+ *
+ * when disabled there is no over voltage protection. The usb voltage is
+ * fed to the pmic as is. This should be disabled only when there is
+ * over voltage protection circuitry present outside the pmic chip.
+ *
+ */
 int pm8921_usb_ovp_disable(int disable);
 
 #ifdef CONFIG_HTC_BATT_8960

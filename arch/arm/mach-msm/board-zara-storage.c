@@ -26,7 +26,7 @@
 
 #include "board-8930.h"
 #include "board-storage-common-a.h"
-#define	GPIO(X)		(X) 
+#define	GPIO(X)		(X)
 #define	SD_CDETz	GPIO(10)
 
 enum sdcc_controllers {
@@ -39,7 +39,7 @@ enum sdcc_controllers {
 };
 
 static struct msm_mmc_reg_data mmc_vdd_reg_data[MAX_SDCC_CONTROLLER] = {
-	
+
 	[SDCC1] = {
 		.name = "sdc_vdd",
 		.high_vol_level = 2950000,
@@ -47,45 +47,44 @@ static struct msm_mmc_reg_data mmc_vdd_reg_data[MAX_SDCC_CONTROLLER] = {
 		.always_on = 1,
 		.lpm_sup = 1,
 		.lpm_uA = 9000,
-		.hpm_uA = 200000, 
+		.hpm_uA = 200000,
 	},
-	
+
 	[SDCC3] = {
 		.name = "sdc_vdd",
 		.high_vol_level = 2950000,
 		.low_vol_level = 2950000,
-		.hpm_uA = 800000, 
+		.hpm_uA = 800000,
 		.reset_at_init = true,
 	}
 };
 
 static struct msm_mmc_reg_data mmc_vdd_io_reg_data[MAX_SDCC_CONTROLLER] = {
-	
+
 	[SDCC1] = {
 		.name = "sdc_vdd_io",
 		.always_on = 1,
 		.high_vol_level = 1800000,
 		.low_vol_level = 1800000,
-		.hpm_uA = 200000, 
+		.hpm_uA = 200000,
 	},
-	
+
 	[SDCC3] = {
 		.name = "sdc_vdd_io",
 		.high_vol_level = 2950000,
 		.low_vol_level = 1850000,
 		.always_on = 1,
-		
 		.hpm_uA = 16000,
 	}
 };
 
 static struct msm_mmc_slot_reg_data mmc_slot_vreg_data[MAX_SDCC_CONTROLLER] = {
-	
+
 	[SDCC1] = {
 		.vdd_data = &mmc_vdd_reg_data[SDCC1],
 		.vdd_io_data = &mmc_vdd_io_reg_data[SDCC1],
 	},
-	
+
 	[SDCC3] = {
 		.vdd_data = &mmc_vdd_reg_data[SDCC3],
 		.vdd_io_data = &mmc_vdd_io_reg_data[SDCC3],
@@ -269,7 +268,7 @@ static struct mmc_platform_data msm8930_sdc3_data = {
 void __init msm8930_init_mmc(void)
 {
 #ifdef CONFIG_MMC_MSM_SDC1_SUPPORT
-	
+
 	msm_add_sdcc(1, &msm8930_sdc1_data);
 #endif
 #ifdef CONFIG_MMC_MSM_SDC3_SUPPORT
@@ -279,7 +278,7 @@ void __init msm8930_init_mmc(void)
 		msm8930_sdc3_data.vreg_data->vdd_data->always_on = false;
 		msm8930_sdc3_data.vreg_data->vdd_data->reset_at_init = false;
 	}
-	
+
 	if (!machine_is_msm8930_cdp()) {
 		msm8930_sdc3_data.wpswitch_gpio = 0;
 		msm8930_sdc3_data.wpswitch_polarity = 0;

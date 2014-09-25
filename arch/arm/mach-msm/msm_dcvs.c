@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -90,7 +90,7 @@ static int msm_dcvs_debug;
 static int msm_dcvs_enabled = 1;
 module_param_named(enable, msm_dcvs_enabled, int, S_IRUGO | S_IWUSR | S_IWGRP);
 
-static struct dentry *debugfs_base;
+static struct dentry		*debugfs_base;
 
 static struct dcvs_core core_list[CORES_MAX];
 static DEFINE_MUTEX(core_list_lock);

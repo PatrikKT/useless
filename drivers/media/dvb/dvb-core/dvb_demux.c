@@ -5,6 +5,8 @@
  *		       & Marcus Metzler <marcus@convergence.de>
  *			 for convergence integrated media GmbH
  *
+ * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 2.1
@@ -360,7 +362,7 @@ static inline void dvb_dmx_swfilter_packet_type(struct dvb_demux_feed *feed,
 			break;
 		if (feed->ts_type & TS_PACKET) {
 			if (feed->ts_type & TS_PAYLOAD_ONLY)
-				dvb_dmx_swfilter_payload(feed, buf);
+					dvb_dmx_swfilter_payload(feed, buf);
 			else
 				feed->cb.ts(buf, 188, NULL, 0, &feed->feed.ts,
 					    DMX_OK);

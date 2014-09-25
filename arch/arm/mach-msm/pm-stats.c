@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -39,6 +39,9 @@ static DEFINE_SPINLOCK(msm_pm_stats_lock);
 static DEFINE_PER_CPU_SHARED_ALIGNED(
 	struct msm_pm_cpu_time_stats, msm_pm_stats);
 
+/*
+ * Add the given time data to the statistics collection.
+ */
 void msm_pm_add_stat(enum msm_pm_time_stats_id id, int64_t t)
 {
 	unsigned long flags;
@@ -118,14 +121,13 @@ static int msm_pm_read_proc
 		spin_lock_irqsave(&msm_pm_stats_lock, flags);
 		stats = per_cpu(msm_pm_stats, cpu).stats;
 
-		
 		if (!stats[id].enabled) {
 			*p = '\0';
 			p++;
 			goto again;
 		}
 
-		s = stats[id].total_time;
+			s = stats[id].total_time;
 		ns = do_div(s, NSEC_PER_SEC);
 		SNPRINTF(p, count,
 			"[cpu %u] %s:\n"

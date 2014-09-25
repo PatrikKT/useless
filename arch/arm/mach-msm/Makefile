@@ -71,7 +71,7 @@ target += smd_rpc_sym.c
 $(obj)/smd_rpc_sym.c: $(src)/smd_rpc_sym $(src)/mkrpcsym.pl
 	$(call if_changed,mkrpcsym)
 
-obj-$(CONFIG_MSM_SCM) += scm.o scm-boot.o htc_simlock.o htc_sdservice.o htc_drm.o htc_debug.o htc_rmtmsg.o htc_fingerprint.o
+obj-$(CONFIG_MSM_SCM) += scm.o scm-boot.o htc_simlock.o htc_sdservice.o htc_drm.o htc_rmtmsg.o htc_fingerprint.o
 obj-$(CONFIG_MSM_SECURE_IO) += scm-io.o
 obj-$(CONFIG_MSM_PIL) += peripheral-loader.o
 obj-$(CONFIG_MSM_PIL) += scm-pas.o
@@ -323,8 +323,7 @@ board-evita_utl-all-objs += board-evita_utl.o board-evita_utl-gpiomux.o devices-
 board-k2_cl-all-objs +=  board-k2_cl-pmic.o board-k2_cl-storage.o board-k2_cl-gpiomux.o devices-8930.o
 board-k2_plc_cl-all-objs +=  board-k2_plc_cl-pmic.o board-k2_plc_cl-storage.o board-k2_plc_cl-gpiomux.o devices-8930.o
 board-tc2-all-objs +=  board-tc2-pmic.o board-tc2-storage.o board-tc2-gpiomux.o devices-8930.o
-board-zara-all-objs +=  board-zara-pmic.o board-zara-storage.o board-zara-gpiomux.o devices-8930.o
-board-zara_cl-all-objs +=  board-zara_cl-pmic.o board-zara_cl-storage.o board-zara_cl-gpiomux.o devices-8930.o
+board-zara-all-objs +=  board-zara-pmic.o board-zara-storage.o board-zara-gpiomux.o devices-8930.fo
 board-zara_wl-all-objs +=  board-zara_cl-pmic.o board-zara_cl-storage.o board-zara_cl-gpiomux.o devices-8930.o
 board-cp5_wl-all-objs +=  board-cp5_wl-pmic.o board-cp5_wl-storage.o board-cp5_wl-gpiomux.o devices-8930.o
 board-m4-all-objs +=  board-m4-pmic.o board-m4-storage.o board-m4-gpiomux.o devices-8930.o
@@ -390,7 +389,6 @@ board-dlp_dwg-all-objs += board-dlp_china-display.o board-dlp_china-gpu.o
 board-operaul-all-objs += board-operaul-display.o board-operaul-gpu.o
 board-tc2-all-objs += board-tc2-display.o board-tc2-gpu.o
 board-zara-all-objs += board-zara-display.o board-zara-gpu.o
-board-zara_cl-all-objs += board-zara_cl-display.o board-zara_cl-gpu.o
 board-zara_wl-all-objs += board-zara_cl-display.o board-zara_cl-gpu.o
 board-cp5_wl-all-objs += board-cp5_wl-display.o board-cp5_wl-gpu.o
 board-m4-all-objs += board-m4-display.o board-m4-gpu.o
@@ -622,16 +620,6 @@ obj-$(CONFIG_MACH_SAPPHIRE) += board-sapphire.o board-sapphire-gpio.o
 obj-$(CONFIG_MACH_SAPPHIRE) += board-sapphire-keypad.o board-sapphire-panel.o
 obj-$(CONFIG_MACH_SAPPHIRE) += board-sapphire-mmc.o board-sapphire-wifi.o
 obj-$(CONFIG_MACH_SAPPHIRE) += board-sapphire-rfkill.o msm_vibrator.o
-
-obj-$(CONFIG_MACH_VILLEC2) += board-villec2.o devices_htc.o
-obj-$(CONFIG_MACH_VILLEC2) += board-villec2-keypad.o board-villec2-gpiomux.o
-obj-$(CONFIG_MACH_VILLEC2) += board-villec2-camera.o htc_awb_cal.o
-obj-$(CONFIG_MACH_VILLEC2) += htc_bdaddress.o board-villec2-rfkill.o
-# Broadcom 
-obj-$(CONFIG_MACH_VILLEC2) += board-villec2-mmc.o board-villec2-wifi.o htc_wifi_nvs.o 
-#obj-$(CONFIG_MACH_VILLEC2) += board-villec2-mmc.o
-obj-$(CONFIG_MACH_VILLEC2) += htc_util.o
-obj-$(CONFIG_MACH_VILLEC2) += board-villec2-audio.o
 
 CFLAGS_msm_vibrator.o += -Idrivers/staging/android
 CFLAGS_board-9615.o += -Idrivers/usb/gadget

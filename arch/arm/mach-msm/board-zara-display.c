@@ -449,23 +449,23 @@ static struct mipi_dsi_platform_data mipi_dsi_pdata = {
 	.dsi_power_save = mipi_dsi_panel_power,
 };
 
-static atomic_t lcd_power_state;
+struct dcs_cmd_req cmdreq;
 static struct mipi_dsi_panel_platform_data *mipi_zara_pdata;
 
-struct dcs_cmd_req cmdreq;
 static struct dsi_buf zara_panel_tx_buf;
 static struct dsi_buf zara_panel_rx_buf;
 static struct dsi_cmd_desc *init_on_cmds = NULL;
 static struct dsi_cmd_desc *display_off_cmds = NULL;
 static int init_on_cmds_count = 0;
 static int display_off_cmds_count = 0;
+static atomic_t lcd_power_state;
 
-static char sleep_out[] = {0x11, 0x00}; 
-static char sleep_in[2] = {0x10, 0x00}; 
-static char led_pwm[2] = {0x51, 0xF0}; 
-static char display_off[2] = {0x28, 0x00}; 
-static char dsi_novatek_dim_on[] = {0x53, 0x2C}; 
-static char dsi_novatek_dim_off[] = {0x53, 0x24}; 
+static char sleep_out[] = {0x11, 0x00};
+static char sleep_in[2] = {0x10, 0x00};
+static char led_pwm[2] = {0x51, 0xF0};
+static char display_off[2] = {0x28, 0x00};
+static char dsi_novatek_dim_on[] = {0x53, 0x2C};
+static char dsi_novatek_dim_off[] = {0x53, 0x24};
 
 static struct dsi_cmd_desc novatek_dim_on_cmds[] = {
         {DTYPE_DCS_LWRITE, 1, 0, 0, 1, sizeof(dsi_novatek_dim_on), dsi_novatek_dim_on},
@@ -920,7 +920,7 @@ static struct dsi_cmd_desc jdi_novatek_display_off_cmds[] = {
 };
 
 
-static int zara_lcd_on(struct platform_device *pdev)
+static int mipi_zara_lcd_on(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd;
 	struct mipi_panel_info *mipi;
@@ -939,9 +939,8 @@ static int zara_lcd_on(struct platform_device *pdev)
 		PR_DISP_INFO("Display On - 1st time\n");
 		mfd->init_mipi_lcd = 1;
 	} else
-		PR_DISP_INFO("Display On \n");
+		pr_debug("Display On \n");
 
-	
 	if (panel_type == PANEL_ID_CANIS_LG_NOVATEK) {
 		gpio_set_value(MSM_LCD_RSTz, 1);
 		hr_msleep(5);
@@ -949,18 +948,18 @@ static int zara_lcd_on(struct platform_device *pdev)
 		hr_msleep(5);
 		gpio_set_value(MSM_LCD_RSTz, 1);
 		hr_msleep(30);
-	}
+	)
 
 	mipi_dsi_cmds_tx(&zara_panel_tx_buf, init_on_cmds, init_on_cmds_count);
 
 	atomic_set(&lcd_power_state, 1);
 
-	PR_DISP_DEBUG("Init done\n");
+	pr_debug("Init done\n");
 
 	return 0;
 }
 
-static int zara_lcd_off(struct platform_device *pdev)
+static int mipi_zara_lcd_off(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd;
 
@@ -970,7 +969,6 @@ static int zara_lcd_off(struct platform_device *pdev)
 		return -ENODEV;
 	if (mfd->key != MFD_KEY)
 		return -EINVAL;
-
 	atomic_set(&lcd_power_state, 0);
 
 	return 0;
@@ -987,7 +985,7 @@ static int __devinit zara_lcd_probe(struct platform_device *pdev)
 	if (pdev->id == 0) {
 		mipi_zara_pdata = pdev->dev.platform_data;
 
-		if (mipi_zara_pdata
+	if (mipi_zara_pdata
 			&& mipi_zara_pdata->phy_ctrl_settings) {
 			phy_settings = (mipi_zara_pdata->phy_ctrl_settings);
 		}
@@ -1131,8 +1129,8 @@ static struct platform_driver this_driver = {
 };
 
 static struct msm_fb_panel_data zara_panel_data = {
-	.on		= zara_lcd_on,
-	.off		= zara_lcd_off,
+	.on		= mipi_zara_lcd_on,
+	.off		= mipi_zara_lcd_off,
 	.set_backlight  = zara_set_backlight,
 	.display_on	= zara_display_on,
 	.display_off	= zara_display_off,
@@ -1162,15 +1160,13 @@ int mipi_zara_device_register(struct msm_panel_info *pinfo,
 	ret = platform_device_add_data(pdev, &zara_panel_data,
 		sizeof(zara_panel_data));
 	if (ret) {
-		printk(KERN_ERR
-		  "%s: platform_device_add_data failed!\n", __func__);
+		pr_err("%s: platform_device_add_data failed!\n", __func__);
 		goto err_device_put;
 	}
 
 	ret = platform_device_add(pdev);
 	if (ret) {
-		printk(KERN_ERR
-		  "%s: platform_device_register failed!\n", __func__);
+		pr_err("%s: platform_device_register failed!\n", __func__);
 		goto err_device_put;
 	}
 
@@ -1182,18 +1178,16 @@ err_device_put:
 }
 
 static struct mipi_dsi_phy_ctrl mipi_dsi_lg_novatek_phy_ctrl = {
-	
-	
+
 	{0x09, 0x08, 0x05, 0x00, 0x20},
-	
-	
+
 	{0x7F, 0x1C, 0x13, 0x00, 0x41, 0x49, 0x17,
 	0x1F, 0x20, 0x03, 0x04, 0xa0},
-	
+
 	{0x5F, 0x00, 0x00, 0x10},
-	
+
 	{0xff, 0x00, 0x06, 0x00},
-	
+
 	{0x00, 0x52, 0x30, 0xc4, 0x00, 0x10, 0x07, 0x62,
 	0x71, 0x88, 0x99,
 	0x0, 0x14, 0x03, 0x0, 0x2, 0x0e, 0x01, 0x0, 0x01, 0x0},
@@ -1238,8 +1232,8 @@ static int __init mipi_cmd_lg_novatek_init(void)
 	pinfo.lcdc.v_pulse_width = 2;
 	pinfo.clk_rate = 463000000;
 
-	pinfo.lcdc.border_clr = 0;  
-	pinfo.lcdc.underflow_clr = 0xff;  
+	pinfo.lcdc.border_clr = 0;	/* blk */
+	pinfo.lcdc.underflow_clr = 0xff;	/* blue */
 	pinfo.lcdc.hsync_skew = 0;
 	pinfo.bl_max = 255;
 	pinfo.bl_min = 1;
@@ -1262,7 +1256,7 @@ static int __init mipi_cmd_lg_novatek_init(void)
 	pinfo.mipi.tx_eot_append = TRUE;
 	pinfo.mipi.t_clk_post = 0x04;
 	pinfo.mipi.t_clk_pre = 0x1B;
-	pinfo.mipi.stream = 0;  
+	pinfo.mipi.stream = 0;	/* dma_p */
 	pinfo.mipi.mdp_trigger = DSI_CMD_TRIGGER_NONE;
 	pinfo.mipi.dma_trigger = DSI_CMD_TRIGGER_SW;
 	pinfo.mipi.frame_rate = 60;
@@ -1271,12 +1265,13 @@ static int __init mipi_cmd_lg_novatek_init(void)
 	pinfo.mipi.dsi_reg_db = dsi_video_mode_reg_db;
 	pinfo.mipi.dsi_reg_db_size = ARRAY_SIZE(dsi_video_mode_reg_db);
 
-	ret = mipi_zara_device_register(&pinfo, MIPI_DSI_PRIM, MIPI_DSI_PANEL_QHD_PT);
+	ret = mipi_zara_device_register(&pinfo, MIPI_DSI_PRIM,
+						MIPI_DSI_PANEL_QHD_PT);
 
 	if (ret)
-		PR_DISP_ERR("%s: failed to register device!\n", __func__);
+		pr_err("%s: failed to register device!\n", __func__);
 
-	PR_DISP_INFO("%s: panel_type=PANEL_ID_CANIS_LG_NOVATEK\n", __func__);
+	pr_warning("%s: panel_type=PANEL_ID_CANIS_LG_NOVATEK\n", __func__);
 	init_on_cmds = lg_novatek_video_on_cmds;
 	init_on_cmds_count = ARRAY_SIZE(lg_novatek_video_on_cmds);
 	display_off_cmds = lg_novatek_display_off_cmds;
@@ -1307,8 +1302,8 @@ static int __init mipi_cmd_jdi_novatek_init(void)
 	pinfo.lcdc.v_pulse_width = 2;
 	pinfo.clk_rate = 463000000;
 
-	pinfo.lcdc.border_clr = 0;  
-	pinfo.lcdc.underflow_clr = 0xff;  
+	pinfo.lcdc.border_clr = 0;
+	pinfo.lcdc.underflow_clr = 0xff;
 	pinfo.lcdc.hsync_skew = 0;
 	pinfo.bl_max = 255;
 	pinfo.bl_min = 1;
@@ -1331,7 +1326,7 @@ static int __init mipi_cmd_jdi_novatek_init(void)
 	pinfo.mipi.tx_eot_append = TRUE;
 	pinfo.mipi.t_clk_post = 0x04;
 	pinfo.mipi.t_clk_pre = 0x1B;
-	pinfo.mipi.stream = 0;  
+	pinfo.mipi.stream = 0;
 	pinfo.mipi.mdp_trigger = DSI_CMD_TRIGGER_NONE;
 	pinfo.mipi.dma_trigger = DSI_CMD_TRIGGER_SW;
 	pinfo.mipi.frame_rate = 60;
@@ -1340,12 +1335,13 @@ static int __init mipi_cmd_jdi_novatek_init(void)
 	pinfo.mipi.dsi_reg_db = dsi_video_mode_reg_db;
 	pinfo.mipi.dsi_reg_db_size = ARRAY_SIZE(dsi_video_mode_reg_db);
 
-	ret = mipi_zara_device_register(&pinfo, MIPI_DSI_PRIM, MIPI_DSI_PANEL_QHD_PT);
+	ret = mipi_zara_device_register(&pinfo, MIPI_DSI_PRIM,
+						MIPI_DSI_PANEL_QHD_PT);
 
 	if (ret)
-		PR_DISP_ERR("%s: failed to register device!\n", __func__);
+		pr_err("%s: failed to register device!\n", __func__);
 
-	PR_DISP_INFO("%s: panel_type=PANEL_ID_CANIS_JDI_NOVATEK\n", __func__);
+	pr_warning("%s: panel_type=PANEL_ID_CANIS_JDI_NOVATEK\n", __func__);
 	init_on_cmds = jdi_novatek_video_on_cmds;
 	init_on_cmds_count = ARRAY_SIZE(jdi_novatek_video_on_cmds);
 	display_off_cmds = jdi_novatek_display_off_cmds;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -21,7 +21,7 @@
 #define DEV_DBG(args...)	pr_debug(DEV_DBG_PREFIX args)
 #else
 #define DEV_DBG(args...)	(void)0
-#endif 
+#endif /* DEBUG */
 #define DEV_INFO(args...)	dev_info(external_common_state->dev, args)
 #define DEV_WARN(args...)	dev_warn(external_common_state->dev, args)
 #define DEV_ERR(args...)	dev_err(external_common_state->dev, args)
@@ -186,6 +186,8 @@ struct hdmi_disp_mode_timing_type {
 extern struct hdmi_disp_mode_timing_type
 	hdmi_common_supported_video_mode_lut[HDMI_VFRMT_MAX];
 
+/* Structure that encapsulates all the supported display modes by the HDMI sink
+ * device */
 struct hdmi_disp_mode_list_type {
 	uint32	disp_mode_list[HDMI_VFRMT_MAX];
 #define TOP_AND_BOTTOM		0x10
@@ -265,4 +267,4 @@ ssize_t video_3d_format_2string(uint32 format, char *buf);
 int external_common_state_create(struct platform_device *pdev);
 void external_common_state_remove(void);
 
-#endif 
+#endif /* __EXTERNAL_COMMON_H__ */

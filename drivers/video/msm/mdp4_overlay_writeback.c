@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -69,7 +69,7 @@ static void vsync_irq_enable(int intr, int term)
 	unsigned long flag;
 
 	spin_lock_irqsave(&mdp_spin_lock, flag);
-	
+	/* no need to clear other interrupts for comamnd mode */
 	mdp_intr_mask |= intr;
 	outp32(MDP_INTR_ENABLE, mdp_intr_mask);
 	mdp_enable_irq(term);
@@ -81,7 +81,7 @@ static void vsync_irq_disable(int intr, int term)
 	unsigned long flag;
 
 	spin_lock_irqsave(&mdp_spin_lock, flag);
-	
+	/* no need to clear other interrupts for comamnd mode */
 	mdp_intr_mask &= ~intr;
 	outp32(MDP_INTR_ENABLE, mdp_intr_mask);
 	mdp_disable_irq_nosync(term);
@@ -125,7 +125,7 @@ int mdp4_overlay_writeback_on(struct platform_device *pdev)
 	buf += fbi->var.xoffset * bpp +
 		fbi->var.yoffset * fbi->fix.line_length;
 
-	
+	/* MDP cmd block enable */
 	mdp_clk_ctrl(1);
 
 	if (vctrl->base_pipe == NULL) {
@@ -144,7 +144,7 @@ int mdp4_overlay_writeback_on(struct platform_device *pdev)
 		if (ret < 0)
 			pr_info("%s: format2type failed\n", __func__);
 
-		vctrl->base_pipe = pipe; 
+		vctrl->base_pipe = pipe; /* keep it */
 
 	} else {
 		pipe = vctrl->base_pipe;
@@ -152,7 +152,7 @@ int mdp4_overlay_writeback_on(struct platform_device *pdev)
 
 	ret = panel_next_on(pdev);
 
-	
+	/* MDP_LAYERMIXER_WB_MUX_SEL to use mixer1 axi for mixer2 writeback */
 	if (hdmi_prim_display)
 		data = 0x01;
 	else
@@ -160,11 +160,11 @@ int mdp4_overlay_writeback_on(struct platform_device *pdev)
 	outpdw(MDP_BASE + 0x100F4, data);
 
 	MDP_OUTP(MDP_BASE + MDP4_OVERLAYPROC1_BASE + 0x5004,
-		((0x0 & 0xFFF) << 16) | 
-			(0x0 & 0xFFF));         
-	
+		((0x0 & 0xFFF) << 16) | /* 12-bit B */
+			(0x0 & 0xFFF));         /* 12-bit G */
+	/* MSP_BORDER_COLOR */
 	MDP_OUTP(MDP_BASE + MDP4_OVERLAYPROC1_BASE + 0x5008,
-		(0x0 & 0xFFF));         
+		(0x0 & 0xFFF));         /* 12-bit R */
 
 	mdp_clk_ctrl(0);
 
@@ -203,7 +203,7 @@ int mdp4_overlay_writeback_off(struct platform_device *pdev)
 	complete(&vctrl->ov_comp);
 	msleep(20);
 	mdp_clk_ctrl(1);
-	
+	/* sanity check, free pipes besides base layer */
 	mdp4_overlay_unset_mixer(pipe->mixer_num);
 	mdp4_mixer_stage_down(pipe, 1);
 	mdp4_overlay_pipe_free(pipe, 1);
@@ -212,6 +212,10 @@ int mdp4_overlay_writeback_off(struct platform_device *pdev)
 	undx =  vctrl->update_ndx;
 	vp = &vctrl->vlist[undx];
 	if (vp->update_cnt) {
+		/*
+		 * pipe's iommu will be freed at next overlay play
+		 * and iommu_drop statistic will be increased by one
+		 */
 		pr_warn("%s: update_cnt=%d\n", __func__, vp->update_cnt);
 		mdp4_writeback_pipe_clean(vp);
 	}
@@ -219,7 +223,7 @@ int mdp4_overlay_writeback_off(struct platform_device *pdev)
 	ret = panel_next_off(pdev);
 
 	mdp_clk_ctrl(1);
-	
+	/* MDP_LAYERMIXER_WB_MUX_SEL to restore to default cfg*/
 	outpdw(MDP_BASE + 0x100F4, 0x0);
 	mdp_clk_ctrl(0);
 
@@ -256,7 +260,7 @@ static int mdp4_overlay_writeback_update(struct msm_fb_data_type *mfd)
 	buf_offset = fbi->var.xoffset * bpp +
 		fbi->var.yoffset * fbi->fix.line_length;
 
-	
+	/* MDP cmd block enable */
 	mdp_clk_ctrl(1);
 
 	pipe->src_height = fbi->var.yres;
@@ -288,7 +292,7 @@ static int mdp4_overlay_writeback_update(struct msm_fb_data_type *mfd)
 	else
 		outpdw(MDP_BASE + 0x100F4, 0x02);
 
-	
+	/* MDP cmd block disable */
 	mdp_clk_ctrl(0);
 
 	wmb();
@@ -316,12 +320,12 @@ void mdp4_wfd_pipe_queue(int cndx, struct mdp4_overlay_pipe *pipe)
 	undx =  vctrl->update_ndx;
 	vp = &vctrl->vlist[undx];
 
-	pp = &vp->plist[pipe->pipe_ndx - 1];	
+	pp = &vp->plist[pipe->pipe_ndx - 1];	/* ndx start form 1 */
 
 	pr_debug("%s: vndx=%d pipe_ndx=%d pid=%d\n", __func__,
 		undx, pipe->pipe_ndx, current->pid);
 
-	*pp = *pipe;	
+	*pp = *pipe;	/* clone it */
 	vp->update_cnt++;
 
 	mutex_unlock(&vctrl->update_lock);
@@ -337,10 +341,10 @@ static void mdp4_writeback_pipe_clean(struct vsync_update *vp)
 	for (i = 0; i < OVERLAY_PIPE_MAX; i++, pipe++) {
 		if (pipe->pipe_used) {
 			mdp4_overlay_iommu_pipe_free(pipe->pipe_ndx, 0);
-			pipe->pipe_used = 0; 
+			pipe->pipe_used = 0; /* clear */
 		}
 	}
-	vp->update_cnt = 0;     
+	vp->update_cnt = 0;     /* empty queue */
 }
 
 int mdp4_wfd_pipe_commit(struct msm_fb_data_type *mfd,
@@ -365,10 +369,15 @@ int mdp4_wfd_pipe_commit(struct msm_fb_data_type *mfd,
 	pipe = vctrl->base_pipe;
 	mixer = pipe->mixer_num;
 
+	/*
+	 * allow stage_commit without pipes queued
+	 * (vp->update_cnt == 0) to unstage pipes after
+	 * overlay_unset
+	 */
 
 	vctrl->update_ndx++;
 	vctrl->update_ndx &= 0x01;
-	vp->update_cnt = 0;     
+	vp->update_cnt = 0;     /* reset */
 	mutex_unlock(&vctrl->update_lock);
 
 	rc = mdp4_wfd_dequeue_update(mfd, &node);
@@ -383,7 +392,7 @@ int mdp4_wfd_pipe_commit(struct msm_fb_data_type *mfd,
 		}
 		return cnt;
 	}
-	
+	/* free previous committed iommu back to pool */
 	mdp4_overlay_iommu_unmap_freelist(mixer);
 
 	mdp_clk_ctrl(1);
@@ -393,11 +402,15 @@ int mdp4_wfd_pipe_commit(struct msm_fb_data_type *mfd,
 			cnt++;
 			real_pipe = mdp4_overlay_ndx2pipe(pipe->pipe_ndx);
 			if (real_pipe && real_pipe->pipe_used) {
-				
+				/* pipe not unset */
 				mdp4_overlay_vsync_commit(pipe);
 			}
+			/* free previous iommu to freelist
+			* which will be freed at next
+			* pipe_commit
+			*/
 			mdp4_overlay_iommu_pipe_free(pipe->pipe_ndx, 0);
-			pipe->pipe_used = 0; 
+			pipe->pipe_used = 0; /* clear */
 		}
 	}
 
@@ -409,10 +422,10 @@ int mdp4_wfd_pipe_commit(struct msm_fb_data_type *mfd,
 	INIT_COMPLETION(vctrl->ov_comp);
 	vsync_irq_enable(INTR_OVERLAY2_DONE, MDP_OVERLAY2_TERM);
 	pr_debug("%s: kickoff\n", __func__);
-	
+	/* kickoff overlay engine */
 	mdp4_stat.kickoff_ov2++;
 	outpdw(MDP_BASE + 0x00D0, 0);
-	mb(); 
+	mb(); /* make sure kickoff executed */
 	spin_unlock_irqrestore(&vctrl->spin_lock, flags);
 
 	mdp4_stat.overlay_commit[pipe->mixer_num]++;
@@ -707,10 +720,10 @@ int mdp4_writeback_stop(struct fb_info *info)
 	mutex_lock(&mfd->writeback_mutex);
 	mfd->writeback_state = WB_STOPING;
 	mutex_unlock(&mfd->writeback_mutex);
-	
+	/* Wait for all pending writebacks to finish */
 	wait_event_interruptible(mfd->wait_q, is_writeback_inactive(mfd));
 
-	
+	/* Wake up dequeue thread in case of no UI update*/
 	wake_up(&mfd->wait_q);
 
 	return 0;

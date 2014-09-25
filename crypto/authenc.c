@@ -370,7 +370,7 @@ static void crypto_authenc_encrypt_done(struct crypto_async_request *req,
 		struct crypto_authenc_ctx *ctx = crypto_aead_ctx(authenc);
 		struct ablkcipher_request *abreq = aead_request_ctx(areq);
 		u8 *iv = (u8 *)(abreq + 1) +
-			 crypto_ablkcipher_reqsize(ctx->enc);
+		crypto_ablkcipher_reqsize(ctx->enc);
 
 		err = crypto_authenc_genicv(areq, iv, 0);
 	}

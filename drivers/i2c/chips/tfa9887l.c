@@ -32,11 +32,6 @@
 #include <linux/module.h>
 #include <linux/mfd/pm8xxx/pm8921.h>
 
-#undef pr_info
-#undef pr_err
-#define pr_info(fmt, ...) pr_aud_info(fmt, ##__VA_ARGS__)
-#define pr_err(fmt, ...) pr_aud_err(fmt, ##__VA_ARGS__)
-
 #define TPA9887_IOCTL_MAGIC 'a'
 #define TPA9887_WRITE_CONFIG	_IOW(TPA9887_IOCTL_MAGIC, 0x01, unsigned int)
 #define TPA9887_READ_CONFIG	_IOW(TPA9887_IOCTL_MAGIC, 0x02, unsigned int)
@@ -182,7 +177,6 @@ static int tfa9887_i2c_write(char *txData, int length)
 #endif
 
 	rc = i2c_transfer(this_client->adapter, msg, 1);
-
 	if (rc < 0) {
 		pr_err("%s: transfer error %d\n", __func__, rc);
 		return rc;

@@ -58,8 +58,8 @@ static int dvb_dmxdev_buffer_write(struct dvb_ringbuffer *buf,
 }
 
 static ssize_t dvb_dmxdev_buffer_read(struct dvb_ringbuffer *src,
-				      int non_blocking, char __user *buf,
-				      size_t count, loff_t *ppos)
+					int non_blocking, char __user *buf,
+					size_t count, loff_t *ppos)
 {
 	size_t todo;
 	ssize_t avail;
@@ -81,8 +81,8 @@ static ssize_t dvb_dmxdev_buffer_read(struct dvb_ringbuffer *src,
 		}
 
 		ret = wait_event_interruptible(src->queue,
-					       !dvb_ringbuffer_empty(src) ||
-					       (src->error != 0));
+						!dvb_ringbuffer_empty(src) ||
+						(src->error != 0));
 		if (ret < 0)
 			break;
 
@@ -200,7 +200,7 @@ static int dvb_dvr_release(struct inode *inode, struct file *file)
 			spin_lock_irq(&dmxdev->lock);
 			dmxdev->dvr_buffer.data = NULL;
 			spin_unlock_irq(&dmxdev->lock);
-			vfree(mem);
+				vfree(mem);
 		}
 	}
 	/* TODO */
@@ -227,6 +227,7 @@ static ssize_t dvb_dvr_write(struct file *file, const char __user *buf,
 		return -EOPNOTSUPP;
 	if ((file->f_flags & O_ACCMODE) != O_WRONLY)
 		return -EINVAL;
+
 	if (mutex_lock_interruptible(&dmxdev->mutex))
 		return -ERESTARTSYS;
 
@@ -254,7 +255,7 @@ static ssize_t dvb_dvr_read(struct file *file, char __user *buf, size_t count,
 }
 
 static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
-				      unsigned long size)
+						unsigned long size)
 {
 	struct dvb_ringbuffer *buf = &dmxdev->dvr_buffer;
 	void *newmem;
@@ -648,7 +649,6 @@ static int dvb_dmxdev_filter_start(struct dmxdev_filter *filter)
 		*secfilter = NULL;
 		*secfeed = NULL;
 
-
 		/* find active filter/feed with same PID */
 		for (i = 0; i < dmxdev->filternum; i++) {
 			if (dmxdev->filter[i].state >= DMXDEV_STATE_GO &&
@@ -662,8 +662,8 @@ static int dvb_dmxdev_filter_start(struct dmxdev_filter *filter)
 		/* if no feed found, try to allocate new one */
 		if (!*secfeed) {
 			ret = dmxdev->demux->allocate_section_feed(dmxdev->demux,
-								   secfeed,
-								   dvb_dmxdev_section_callback);
+						secfeed,
+						dvb_dmxdev_section_callback);
 			if (ret < 0) {
 				printk("DVB (%s): could not alloc feed\n",
 				       __func__);
@@ -783,7 +783,7 @@ static int dvb_dmxdev_filter_free(struct dmxdev *dmxdev,
 		spin_lock_irq(&dmxdev->lock);
 		dmxdevfilter->buffer.data = NULL;
 		spin_unlock_irq(&dmxdev->lock);
-		vfree(mem);
+			vfree(mem);
 	}
 
 	dvb_dmxdev_filter_state_set(dmxdevfilter, DMXDEV_STATE_FREE);
@@ -839,9 +839,10 @@ static int dvb_dmxdev_remove_pid(struct dmxdev *dmxdev,
 
 	list_for_each_entry_safe(feed, tmp, &filter->feed.ts, next) {
 		if ((feed->pid == pid) && (feed->ts != NULL)) {
-			feed->ts->stop_filtering(feed->ts);
-			filter->dev->demux->release_ts_feed(filter->dev->demux,
-							    feed->ts);
+				feed->ts->stop_filtering(feed->ts);
+				filter->dev->demux->release_ts_feed(
+							filter->dev->demux,
+							feed->ts);
 			list_del(&feed->next);
 			kfree(feed);
 		}
@@ -955,8 +956,8 @@ dvb_demux_read(struct file *file, char __user *buf, size_t count,
 		ret = dvb_dmxdev_read_sec(dmxdevfilter, file, buf, count, ppos);
 	else
 		ret = dvb_dmxdev_buffer_read(&dmxdevfilter->buffer,
-					     file->f_flags & O_NONBLOCK,
-					     buf, count, ppos);
+					    file->f_flags & O_NONBLOCK,
+					    buf, count, ppos);
 
 	mutex_unlock(&dmxdevfilter->mutex);
 	return ret;

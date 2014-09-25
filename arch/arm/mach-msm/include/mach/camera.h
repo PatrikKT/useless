@@ -127,7 +127,6 @@ enum msm_stereo_state {
 	STEREO_RAW_SNAP_STARTED,
 };
 
-
 enum msm_ispif_vc {
 	VC0,
 	VC1,

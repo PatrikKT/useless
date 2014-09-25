@@ -281,6 +281,10 @@ static inline void dma_cache_post_ops(void *virtual_addr,
 
 	if (arch_has_speculative_dfetch() && !arch_is_coherent()
 	 && dir != DMA_TO_DEVICE)
+		/*
+		 * Treat DMA_BIDIRECTIONAL and DMA_FROM_DEVICE
+		 * identically: invalidate
+		 */
 		___dma_single_cpu_to_dev(virtual_addr,
 					 size, DMA_FROM_DEVICE);
 }
@@ -375,6 +379,5 @@ extern void dma_sync_sg_for_cpu(struct device *, struct scatterlist *, int,
 extern void dma_sync_sg_for_device(struct device *, struct scatterlist *, int,
 		enum dma_data_direction);
 
-
-#endif 
+#endif /* __KERNEL__ */
 #endif

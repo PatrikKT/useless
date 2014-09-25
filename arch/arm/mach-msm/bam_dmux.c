@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -11,6 +11,9 @@
  *
  */
 
+/*
+ *  BAM DMUX module.
+ */
 
 #define DEBUG
 
@@ -276,7 +279,9 @@ struct outside_notify_func {
 	void *priv;
 	struct list_head list_node;
 };
+/* End A2 power collaspe */
 
+/* subsystem restart */
 static int restart_notifier_cb(struct notifier_block *this,
 				unsigned long code,
 				void *data);
@@ -285,6 +290,7 @@ static struct notifier_block restart_notifier = {
 	.notifier_call = restart_notifier_cb,
 };
 static int in_global_reset;
+/* end subsystem restart */
 
 #define bam_ch_is_open(x)						\
 	(bam_ch[(x)].status == (BAM_CH_LOCAL_OPEN | BAM_CH_REMOTE_OPEN))
@@ -992,7 +998,7 @@ int msm_bam_dmux_close(uint32_t id)
 
 	hdr = kmalloc(sizeof(struct bam_mux_hdr), GFP_ATOMIC);
 	if (hdr == NULL) {
-		pr_err(MODULE_NAME "%s: hdr kmalloc failed. ch: %d\n", __func__, id);
+		pr_err("%s: hdr kmalloc failed. ch: %d\n", __func__, id);
 		read_unlock(&ul_wakeup_lock);
 		return -ENOMEM;
 	}
@@ -1025,7 +1031,7 @@ int msm_bam_dmux_is_ch_full(uint32_t id)
 	     id, bam_ch[id].num_tx_pkts, ret);
 	if (!bam_ch_is_local_open(id)) {
 		ret = -ENODEV;
-		pr_err(MODULE_NAME "%s: port not open: %d\n", __func__, bam_ch[id].status);
+		pr_err("%s: port not open: %d\n", __func__, bam_ch[id].status);
 	}
 	spin_unlock_irqrestore(&bam_ch[id].lock, flags);
 
@@ -1047,7 +1053,7 @@ int msm_bam_dmux_is_ch_low(uint32_t id)
 	     id, bam_ch[id].num_tx_pkts, ret);
 	if (!bam_ch_is_local_open(id)) {
 		ret = -ENODEV;
-		pr_err(MODULE_NAME "%s: port not open: %d\n", __func__, bam_ch[id].status);
+		pr_err("%s: port not open: %d\n", __func__, bam_ch[id].status);
 	}
 	spin_unlock_irqrestore(&bam_ch[id].lock, flags);
 
@@ -1271,7 +1277,7 @@ static void bam_mux_rx_notify(struct sps_event_notify *notify)
 
 	switch (notify->event_id) {
 	case SPS_EVENT_EOT:
-		
+		/* attempt to disable interrupts in this pipe */
 		if (!polling_mode) {
 			DBG("%s: attempt to switch to polling mode\n", __func__);
 			ret = sps_get_config(bam_rx_pipe, &cur_rx_conn);

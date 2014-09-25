@@ -176,13 +176,14 @@ struct t_usb_status_notifier{
 void reset_dflipflop(void);
 #endif
 
-int board_mfg_mode(void);
+
 int __init parse_tag_smi(const struct tag *tags);
-int __init parse_tag_hwid(const struct tag * tags);
-int __init parse_tag_skuid(const struct tag * tags);
-int parse_tag_engineerid(const struct tag * tags);
+int __init parse_tag_hwid(const struct tag *tags);
+int __init parse_tag_skuid(const struct tag *tags);
+int parse_tag_engineerid(const struct tag *tags);
 int __init parse_tag_smlog(const struct tag *tags);
 
+int board_mfg_mode(void);
 char *board_serialno(void);
 unsigned long get_kernel_flag(void);
 unsigned long get_debug_flag(void);

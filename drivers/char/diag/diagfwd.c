@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2008-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -99,7 +99,7 @@ static int has_device_tree(void)
 
 int chk_config_get_id(void)
 {
-	
+	/* For all Fusion targets,  Modem will always be present */
 	if (machine_is_msm8x60_fusion() || machine_is_msm8x60_fusn_ffa())
 		return 0;
 
@@ -185,11 +185,18 @@ int chk_polling_response(void)
 		return 0;
 }
 
+/*
+ * This function should be called if you feel that the logging process may
+ * need to be woken up. For instance, if the logging mode is MEMORY_DEVICE MODE
+ * and while trying to read data from a SMD data channel there are no buffers
+ * available to read the data into, then this function should be called to
+ * determine if the logging process needs to be woken up.
+ */
 void chk_logging_wakeup(void)
 {
 	int i;
 
-	
+	/* Find the index of the logging process */
 	for (i = 0; i < driver->num_clients; i++)
 		if (driver->client_map[i].pid ==
 			driver->logging_process_id)
@@ -860,7 +867,7 @@ static int diag_process_apps_pkt(unsigned char *buf, int len)
 		}
 	}
 #if defined(CONFIG_DIAG_OVER_USB)
-	
+	/* Check for the command/respond msg for the maximum packet length */
 	if ((*buf == 0x4b) && (*(buf+1) == 0x12) &&
 		(*(uint16_t *)(buf+2) == 0x0055)) {
 		for (i = 0; i < 4; i++)
@@ -912,7 +919,7 @@ static int diag_process_apps_pkt(unsigned char *buf, int len)
 		driver->apps_rsp_buf[1] = 0x1;
 		driver->apps_rsp_buf[2] = 0x1;
 		driver->apps_rsp_buf[3] = 0x0;
-		
+		/* -1 to un-account for OEM SSID range */
 		*(int *)(driver->apps_rsp_buf + 4) = MSG_MASK_TBL_CNT - 1;
 		*(uint16_t *)(driver->apps_rsp_buf + 8) = MSG_SSID_0;
 		*(uint16_t *)(driver->apps_rsp_buf + 10) = MSG_SSID_0_LAST;
@@ -969,7 +976,7 @@ static int diag_process_apps_pkt(unsigned char *buf, int len)
 		ssid_first = *(uint16_t *)(buf + 2);
 		ssid_last = *(uint16_t *)(buf + 4);
 		ssid_range = 4 * (ssid_last - ssid_first + 1);
-		
+		/* frame response */
 		driver->apps_rsp_buf[0] = 0x7d;
 		driver->apps_rsp_buf[1] = 0x2;
 		*(uint16_t *)(driver->apps_rsp_buf + 2) = ssid_first;
@@ -977,7 +984,7 @@ static int diag_process_apps_pkt(unsigned char *buf, int len)
 		driver->apps_rsp_buf[6] = 0x1;
 		driver->apps_rsp_buf[7] = 0x0;
 		ptr = driver->apps_rsp_buf + 8;
-		
+		/* bld time masks */
 		switch (ssid_first) {
 		case MSG_SSID_0:
 			for (i = 0; i < ssid_range; i += 4)
@@ -1075,25 +1082,25 @@ static int diag_process_apps_pkt(unsigned char *buf, int len)
 		encode_rsp_and_send(8 + ssid_range - 1);
 		return 0;
 	}
-	
+	/* Check for download command */
 	else if ((cpu_is_msm8x60() || chk_apps_master()) && (*buf == 0x3A)) {
-		
+		/* send response back */
 		driver->apps_rsp_buf[0] = *buf;
 		encode_rsp_and_send(0);
 		msleep(5000);
-		
+		/* call download API */
 		msm_set_restart_mode(RESTART_DLOAD);
 		printk(KERN_CRIT "diag: download mode set, Rebooting SoC..\n");
 		kernel_restart(NULL);
-		
+		/* Not required, represents that command isnt sent to modem */
 		return 0;
 	}
-	
+	/* Check for polling for Apps only DIAG */
 	else if ((*buf == 0x4b) && (*(buf+1) == 0x32) &&
 		(*(buf+2) == 0x03)) {
-		
+		/* If no one has registered for polling */
 		if (chk_polling_response()) {
-			
+			/* Respond to polling for Apps only DIAG */
 			for (i = 0; i < 3; i++)
 				driver->apps_rsp_buf[i] = *(buf+i);
 			for (i = 0; i < 13; i++)
@@ -1105,7 +1112,7 @@ static int diag_process_apps_pkt(unsigned char *buf, int len)
 	}
 	 
 	else if (chk_polling_response()) {
-		
+		/* respond to 0x0 command */
 		if (*buf == 0x00) {
 			for (i = 0; i < 55; i++)
 				driver->apps_rsp_buf[i] = 0;
@@ -1113,12 +1120,12 @@ static int diag_process_apps_pkt(unsigned char *buf, int len)
 			encode_rsp_and_send(54);
 			return 0;
 		}
-		
+		/* respond to 0x7c command */
 		else if (*buf == 0x7c) {
 			driver->apps_rsp_buf[0] = 0x7c;
 			for (i = 1; i < 8; i++)
 				driver->apps_rsp_buf[i] = 0;
-			
+			/* Tools ID for APQ 8060 */
 			*(int *)(driver->apps_rsp_buf + 8) =
 							 chk_config_get_id();
 			*(unsigned char *)(driver->apps_rsp_buf + 12) = '\0';
@@ -1140,7 +1147,8 @@ void diag_send_error_rsp(int index)
 		pr_err("diag: error response too huge, aborting\n");
 		return;
 	}
-	driver->apps_rsp_buf[0] = 0x13; 
+
+	driver->apps_rsp_buf[0] = 0x13; /* error code 13 */
 	for (i = 0; i < index; i++)
 		driver->apps_rsp_buf[i+1] = *(driver->hdlc_buf+i);
 	encode_rsp_and_send(index - 3);
@@ -1175,7 +1183,7 @@ void diag_process_hdlc(void *data, unsigned len)
 					   DUMP_PREFIX_ADDRESS, data, len, 1);
 		driver->debug_flag = 0;
 	}
-	
+	/* send error responses from APPS for Central Routing */
 	if (type == 1 && chk_apps_only()) {
 		diag_send_error_rsp(hdlc.dest_idx);
 		type = 0;
@@ -1197,8 +1205,7 @@ void diag_process_hdlc(void *data, unsigned len)
 	for (i = 0; i < hdlc.dest_idx; i++)
 		printk(KERN_DEBUG "\t%x", *(((unsigned char *)
 							driver->hdlc_buf)+i));
-#endif 
-	
+#endif /* DIAG DEBUG */
 	if ((driver->ch) && (ret) && (type) && (hdlc.dest_idx > 3)) {
 		APPEND_DEBUG('g');
 #ifdef CONFIG_MODEM_DIAG_MASTER
@@ -1211,7 +1218,7 @@ void diag_process_hdlc(void *data, unsigned len)
 		printk(KERN_INFO "writing data to SMD, pkt length %d\n", len);
 		print_hex_dump(KERN_DEBUG, "Written Packet Data to SMD: ", 16,
 			       1, DUMP_PREFIX_ADDRESS, data, len, 1);
-#endif 
+#endif /* DIAG DEBUG */
 	}
 }
 
@@ -1277,7 +1284,7 @@ int diagfwd_disconnect(void)
 		if (driver->mdm_ch && !IS_ERR(driver->mdm_ch))
 			diagfwd_disconnect_sdio();
 #endif
-	
+	/* TBD - notify and flow control SMD */
 	return 0;
 }
 
@@ -1337,7 +1344,7 @@ int diagfwd_read_complete(struct diag_request *diag_read_ptr)
 	int status = diag_read_ptr->status;
 	unsigned char *buf = diag_read_ptr->buf;
 
-	
+	/* Determine if the read complete is for data on legacy/mdm ch */
 	if (buf == (void *)driver->usb_buf_out) {
 		driver->read_len_legacy = diag_read_ptr->actual;
 		APPEND_DEBUG('s');
@@ -1355,7 +1362,7 @@ int diagfwd_read_complete(struct diag_request *diag_read_ptr)
 			usb_diag_read(driver->legacy_ch, driver->usb_read_ptr);
 			return 0;
 		}
-#endif
+#endif /* DIAG DEBUG */
 		if (driver->logging_mode == USB_MODE) {
 			if (status != -ECONNRESET && status != -ESHUTDOWN)
 				queue_work(driver->diag_wq,
@@ -1528,6 +1535,7 @@ static int diag_smd_probe(struct platform_device *pdev)
 			, &driver->ch_wcnss, driver, diag_smd_wcnss_notify);
 		ch_wcnss_temp = driver->ch_wcnss;
 	}
+
 	pm_runtime_set_active(&pdev->dev);
 	pm_runtime_enable(&pdev->dev);
 	pr_debug("diag: open SMD port, Id = %d, r = %d\n", pdev->id, r);

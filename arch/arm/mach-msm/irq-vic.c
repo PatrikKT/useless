@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009, 2011 The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -325,13 +325,13 @@ static int msm_irq_set_type(struct irq_data *d, unsigned int flow_type)
 }
 
 static struct irq_chip msm_irq_chip = {
-	.name          = "msm",
+	.name		= "msm",
 	.irq_disable   = msm_irq_mask,
-	.irq_ack       = msm_irq_ack,
-	.irq_mask      = msm_irq_mask,
-	.irq_unmask    = msm_irq_unmask,
-	.irq_set_wake  = msm_irq_set_wake,
-	.irq_set_type  = msm_irq_set_type,
+	.irq_ack	= msm_irq_ack,
+	.irq_mask	= msm_irq_mask,
+	.irq_unmask	= msm_irq_unmask,
+	.irq_set_wake	= msm_irq_set_wake,
+	.irq_set_type	= msm_irq_set_type,
 };
 
 void __init msm_init_irq(void)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -98,6 +98,9 @@ static int __devinit msm_spm_dev_init(struct msm_spm_device *dev,
 
 	for (i = 0; i < dev->num_modes; i++) {
 
+		/* Default offset is 0 and gets updated as we write more
+		 * sequences into SPM
+		 */
 		dev->modes[i].start_addr = offset;
 		ret = msm_spm_drv_write_seq_data(&dev->reg_data,
 						data->modes[i].cmd, &offset);
@@ -116,6 +119,10 @@ spm_failed_malloc:
 	return ret;
 }
 
+/**
+ * msm_spm_turn_on_cpu_rail(): Power on cpu rail before turning on core
+ * @cpu: core id
+ */
 int msm_spm_turn_on_cpu_rail(unsigned int cpu)
 {
 	uint32_t val = 0;
@@ -158,6 +165,11 @@ void msm_spm_reinit(void)
 }
 EXPORT_SYMBOL(msm_spm_reinit);
 
+/**
+ * msm_spm_set_low_power_mode() - Configure SPM start address for low power mode
+ * @mode: SPM LPM mode to enter
+ * @notify_rpm: Notify RPM in this mode
+ */
 int msm_spm_set_low_power_mode(unsigned int mode, bool notify_rpm)
 {
 	struct msm_spm_device *dev = &__get_cpu_var(msm_cpu_spm_device);
@@ -165,6 +177,11 @@ int msm_spm_set_low_power_mode(unsigned int mode, bool notify_rpm)
 }
 EXPORT_SYMBOL(msm_spm_set_low_power_mode);
 
+/**
+ * msm_spm_init(): Board initalization function
+ * @data: platform specific SPM register configuration data
+ * @nr_devs: Number of SPM devices being initialized
+ */
 int __init msm_spm_init(struct msm_spm_platform_data *data, int nr_devs)
 {
 	unsigned int cpu;
@@ -187,6 +204,12 @@ int __init msm_spm_init(struct msm_spm_platform_data *data, int nr_devs)
 
 #ifdef CONFIG_MSM_L2_SPM
 
+/**
+ * msm_spm_l2_set_low_power_mode(): Configure L2 SPM start address
+ *                                  for low power mode
+ * @mode: SPM LPM mode to enter
+ * @notify_rpm: Notify RPM in this mode
+ */
 int msm_spm_l2_set_low_power_mode(unsigned int mode, bool notify_rpm)
 {
 	return msm_spm_dev_set_low_power_mode(
@@ -200,12 +223,20 @@ void msm_spm_l2_reinit(void)
 }
 EXPORT_SYMBOL(msm_spm_l2_reinit);
 
+/**
+ * msm_spm_apcs_set_vdd(): Set Apps processor core sub-system voltage
+ * @vlevel: Encoded PMIC data.
+ */
 int msm_spm_apcs_set_vdd(unsigned int vlevel)
 {
 	return msm_spm_drv_set_vdd(&msm_spm_l2_device.reg_data, vlevel);
 }
 EXPORT_SYMBOL(msm_spm_apcs_set_vdd);
 
+/**
+ * msm_spm_apcs_set_phase(): Set number of SMPS phases.
+ * phase_cnt: Number of phases to be set active
+ */
 int msm_spm_apcs_set_phase(unsigned int phase_cnt)
 {
 	return msm_spm_drv_set_phase(&msm_spm_l2_device.reg_data, phase_cnt);
@@ -242,10 +273,10 @@ static int __devinit msm_spm_dev_probe(struct platform_device *pdev)
 		{"qcom,saw2-cfg", MSM_SPM_REG_SAW2_CFG},
 		{"qcom,saw2-avs-ctl", MSM_SPM_REG_SAW2_AVS_CTL},
 		{"qcom,saw2-avs-hysteresis", MSM_SPM_REG_SAW2_AVS_HYSTERESIS},
-		{"qcom,saw2-spm-ctl", MSM_SPM_REG_SAW2_SPM_CTL},
 		{"qcom,saw2-pmic-dly", MSM_SPM_REG_SAW2_PMIC_DLY},
 		{"qcom,saw2-avs-limit", MSM_SPM_REG_SAW2_AVS_LIMIT},
 		{"qcom,saw2-spm-dly", MSM_SPM_REG_SAW2_SPM_DLY},
+		{"qcom,saw2-spm-ctl", MSM_SPM_REG_SAW2_SPM_CTL},
 		{"qcom,saw2-pmic-data0", MSM_SPM_REG_SAW2_PMIC_DATA_0},
 		{"qcom,saw2-pmic-data1", MSM_SPM_REG_SAW2_PMIC_DATA_1},
 		{"qcom,saw2-pmic-data2", MSM_SPM_REG_SAW2_PMIC_DATA_2},
@@ -314,11 +345,11 @@ static int __devinit msm_spm_dev_probe(struct platform_device *pdev)
 	if (!ret)
 		spm_data.vctl_port = val;
 
-	
-	key = "qcom,phase-port";
-	ret = of_property_read_u32(node, key, &val);
-	if (!ret)
-		spm_data.phase_port = val;
+
+		key = "qcom,phase-port";
+		ret = of_property_read_u32(node, key, &val);
+		if (!ret)
+			spm_data.phase_port = val;
 
 	for (i = 0; i < ARRAY_SIZE(spm_of_data); i++) {
 		ret = of_property_read_u32(node, spm_of_data[i].key, &val);
@@ -379,6 +410,9 @@ static struct platform_driver msm_spm_device_driver = {
 	},
 };
 
+/**
+ * msm_spm_device_init(): Device tree initialization function
+ */
 int __init msm_spm_device_init(void)
 {
 	return platform_driver_register(&msm_spm_device_driver);

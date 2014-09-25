@@ -26,5 +26,5 @@ extern void __const_udelay(unsigned long);
 extern void set_delay_fn(void (*fn)(unsigned long));
 extern void read_current_timer_delay_loop(unsigned long loops);
 
-#endif 
+#endif /* defined(_ARM_DELAY_H) */
 

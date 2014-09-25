@@ -106,4 +106,4 @@ void diag_sdio_mdm_send_req(int context);
 extern int sdio_diag_initialized;
 extern int smd_diag_initialized;
 
-#endif 
+#endif /* _DRIVERS_USB_DIAG_H_ */

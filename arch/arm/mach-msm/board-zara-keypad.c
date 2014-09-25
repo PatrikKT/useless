@@ -121,7 +121,7 @@ static struct platform_device zara_keypad_input_device = {
 	},
 };
 static struct keyreset_platform_data zara_reset_keys_pdata = {
-	
+
 	.keys_down = {
 		KEY_POWER,
 		KEY_VOLUMEDOWN,

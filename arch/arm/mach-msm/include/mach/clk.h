@@ -1,4 +1,4 @@
-/* Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2009, 2012 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -14,17 +14,20 @@
 
 #define MSM_AXI_MAX_FREQ	LONG_MAX
 
+struct clk;
+
 enum clk_reset_action {
 	CLK_RESET_DEASSERT	= 0,
 	CLK_RESET_ASSERT	= 1
 };
 
-struct clk;
-
+/* Rate is maximum clock rate in Hz */
 int clk_set_max_rate(struct clk *clk, unsigned long rate);
 
+/* Assert/Deassert reset to a hardware block associated with a clock */
 int clk_reset(struct clk *clk, enum clk_reset_action action);
 
+/* Set clock-specific configuration parameters */
 int clk_set_flags(struct clk *clk, unsigned long flags);
 
 #endif

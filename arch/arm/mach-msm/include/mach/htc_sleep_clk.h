@@ -18,7 +18,7 @@
 #define __ASM_ARCH_HTC_SLEEP_CLK_H
 
 #define ID_WIFI	(0)
-#define ID_BT		(1)
+#define ID_BT	(1)
 #define CLK_OFF	(0)
 #define CLK_ON	(1)
 

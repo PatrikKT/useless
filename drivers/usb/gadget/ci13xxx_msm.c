@@ -255,9 +255,9 @@ int ci13xxx_msm_remove(struct platform_device *pdev)
 
 static struct platform_driver ci13xxx_msm_driver = {
 	.probe = ci13xxx_msm_probe,
-	.shutdown = ci13xxx_msm_shutdown,
 	.driver = { .name = "msm_hsusb", },
 	.remove = ci13xxx_msm_remove,
+	.shutdown = ci13xxx_msm_shutdown,
 };
 MODULE_ALIAS("platform:msm_hsusb");
 

@@ -1,4 +1,4 @@
-/*  Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/*  Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -1381,7 +1381,7 @@ static int voice_send_cvs_register_cal_cmd(struct voice_data *v)
 
 	cvs_handle = voice_get_cvs_handle(v);
 
-	
+	/* fill in the header */
 	cvs_reg_cal_cmd.hdr.hdr_field = APR_HDR_FIELD(APR_MSG_TYPE_SEQ_CMD,
 				APR_HDR_LEN(APR_HDR_SIZE), APR_PKT_VER);
 	cvs_reg_cal_cmd.hdr.pkt_size = APR_PKT_SIZE(APR_HDR_SIZE,

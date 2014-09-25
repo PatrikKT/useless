@@ -1,7 +1,7 @@
 /*
  * Qualcomm PMIC8XXX GPIO driver
  *
- * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -27,17 +27,21 @@
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 
+/* GPIO registers */
 #define	SSBI_REG_ADDR_GPIO_BASE		0x150
 #define	SSBI_REG_ADDR_GPIO(n)		(SSBI_REG_ADDR_GPIO_BASE + n)
 
+/* GPIO */
 #define	PM_GPIO_BANK_MASK		0x70
 #define	PM_GPIO_BANK_SHIFT		4
 #define	PM_GPIO_WRITE			0x80
 
+/* Bank 0 */
 #define	PM_GPIO_VIN_MASK		0x0E
 #define	PM_GPIO_VIN_SHIFT		1
 #define	PM_GPIO_MODE_ENABLE		0x01
 
+/* Bank 1 */
 #define	PM_GPIO_MODE_MASK		0x0C
 #define	PM_GPIO_MODE_SHIFT		2
 #define	PM_GPIO_OUT_BUFFER		0x02
@@ -48,17 +52,21 @@
 #define	PM_GPIO_MODE_INPUT		0
 #define	PM_GPIO_MODE_BOTH		1
 
+/* Bank 2 */
 #define	PM_GPIO_PULL_MASK		0x0E
 #define	PM_GPIO_PULL_SHIFT		1
 
+/* Bank 3 */
 #define	PM_GPIO_OUT_STRENGTH_MASK	0x0C
 #define	PM_GPIO_OUT_STRENGTH_SHIFT	2
 #define PM_GPIO_PIN_ENABLE		0x00
 #define	PM_GPIO_PIN_DISABLE		0x01
 
+/* Bank 4 */
 #define	PM_GPIO_FUNC_MASK		0x0E
 #define	PM_GPIO_FUNC_SHIFT		1
 
+/* Bank 5 */
 #define	PM_GPIO_NON_INT_POL_INV	0x08
 #define PM_GPIO_BANKS		6
 
@@ -76,6 +84,10 @@ static DEFINE_MUTEX(pm_gpio_chips_lock);
 static int pm_gpio_get(struct pm_gpio_chip *pm_gpio_chip, unsigned gpio)
 {
 	int	mode;
+
+	/* Get gpio value from config bank 1 if output gpio.
+	   Get gpio value from IRQ RT status register for all other gpio modes.
+	 */
 
 	if (gpio >= pm_gpio_chip->gpio_chip.ngpio || pm_gpio_chip == NULL)
 		return -EINVAL;
@@ -371,7 +383,7 @@ int pm8xxx_gpio_config(int gpio, struct pm_gpio *param)
 		return -EINVAL;
 	}
 
-	
+	/* Select banks and configure the gpio */
 	bank[0] = PM_GPIO_WRITE |
 		((param->vin_sel << PM_GPIO_VIN_SHIFT) &
 			PM_GPIO_VIN_MASK) |
@@ -410,7 +422,7 @@ int pm8xxx_gpio_config(int gpio, struct pm_gpio *param)
 		(param->inv_int_pol ? 0 : PM_GPIO_NON_INT_POL_INV);
 
 	spin_lock_irqsave(&pm_gpio_chip->pm_lock, flags);
-	
+	/* Remember bank1 for later use */
 	pm_gpio_chip->bank1[pm_gpio] = bank[1];
 	rc = pm8xxx_write_buf(pm_gpio_chip->gpio_chip.dev->parent,
 			SSBI_REG_ADDR_GPIO(pm_gpio), bank, 6);

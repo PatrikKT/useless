@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -68,7 +68,7 @@ static struct pc_temp_ocv_lut desay_5200_pc_temp_ocv = {
 static struct sf_lut desay_5200_pc_sf = {
 	.rows		= 1,
 	.cols		= 1,
-	
+	/* row_entries are cycles here */
 	.row_entries		= {0},
 	.percent	= {100},
 	.sf			= {

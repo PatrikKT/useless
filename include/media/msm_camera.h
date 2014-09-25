@@ -29,7 +29,7 @@
 
 #include <linux/ion.h>
 
-#define BIT(nr)   (1UL << (nr))
+#define BIT(nr) (1UL << (nr))
 
 #define MSM_CAM_IOCTL_MAGIC 'm'
 
@@ -195,7 +195,7 @@
 #define MSM_CAM_IOCTL_SENSOR_INTERFACE_CFG \
 	_IOW(MSM_CAM_IOCTL_MAGIC, 54, struct sensor_cfg_data *)
 
-#define QCT_IOCTL_MAX 55 
+#define QCT_IOCTL_MAX 55
 
 #define MSM_CAM_IOCTL_ENABLE_DROP_FRAME \
 	_IOW(MSM_CAM_IOCTL_MAGIC, QCT_IOCTL_MAX+1, int *)
@@ -457,8 +457,8 @@ struct msm_camera_cfg_cmd {
 #define CMD_STATS_BF_BUF_RELEASE 57
 #define CMD_STATS_BHIST_BUF_RELEASE 58
 
-#define CMD_AXI_START  0xE1
-#define CMD_AXI_STOP   0xE2
+#define CMD_AXI_START 0xE1
+#define CMD_AXI_STOP  0xE2
 
 struct msm_vfe_cfg_cmd {
 	int cmd_type;
@@ -561,7 +561,7 @@ struct outputCfg {
 #define LAST_AXI_OUTPUT_MODE_ENUM = OUTPUT_ZSL_ALL_CHNLS
 
 #define OUTPUT_PRIM		BIT(8)
-#define OUTPUT_PRIM_ALL_CHNLS	BIT(9)
+#define OUTPUT_PRIM_ALL_CHNLS 	BIT(9)
 #define OUTPUT_SEC		BIT(10)
 #define OUTPUT_SEC_ALL_CHNLS	BIT(11)
 #define OUTPUT_TERT1		BIT(12)
@@ -862,17 +862,16 @@ struct msm_snapshot_pp_status {
 #define CFG_SET_HDR_OUTDOOR_FLAG		72 
 #define CFG_SET_OIS_CALIBRATION		73 
 #define CFG_SET_VCM_CALIBRATION 74 
-#define CFG_SET_ISP_INTERFACE    75
-#define CFG_SET_STOP_STREAMING   76
-#define CFG_SET_BLACK_LEVEL_CALIBRATION_ONGOING 77
-#define CFG_SET_BLACK_LEVEL_CALIBRATION_DONE 78
-#define CFG_SET_CHANNEL_OFFSET 79
-#define CFG_SET_START_STREAMING   80
-#define CFG_SET_AEC_WEIGHTING  81
-#define CFG_SET_AE 82 
-#define CFG_GET_HDR_EXP_GAIN 83 
-#define CFG_MAX			        84
-
+#define CFG_SET_ISP_INTERFACE			75
+#define CFG_SET_STOP_STREAMING			76
+#define CFG_SET_BLACK_LEVEL_CALIBRATION_ONGOING	77
+#define CFG_SET_BLACK_LEVEL_CALIBRATION_DONE	78
+#define CFG_SET_CHANNEL_OFFSET			79
+#define CFG_SET_START_STREAMING			80
+#define CFG_SET_AEC_WEIGHTING			81
+#define CFG_SET_AE				82
+#define CFG_GET_HDR_EXP_GAIN			83
+#define CFG_MAX					84
 #define CFG_I2C_IOCTL_R_OTP 70
 
 #define MOVE_NEAR	0
@@ -1423,7 +1422,7 @@ struct sensor_cfg_data {
 		enum qtr_size_mode qtr_size_mode_value;
 		enum sensor_af_mode af_mode_value;
 #endif 
-		enum msm_ispif_intftype intf; 
+		enum msm_ispif_intftype intf;
 		uint16_t aec_weighting[25];
 	} cfg;
 };
@@ -1440,7 +1439,7 @@ typedef enum {
   VFE_CAMERA_MODE_ZSL,
   VFE_CAMERA_MODE_VIDEO,
   VFE_CAMERA_MODE_VIDEO_60FPS,
-  VFE_CAMERA_MODE_DUALCAM, 
+  VFE_CAMERA_MODE_DUALCAM,
   VFE_CAMERA_MODE_MAX
 } vfe_camera_mode_type;
 
@@ -1763,7 +1762,7 @@ struct msm_camsensor_info {
 	uint8_t hdr_mode;	
 	uint8_t use_rawchip; 
 	uint8_t video_hdr_capability;
-	int dual_camera; 
+	int dual_camera;
 };
 
 #define V4L2_SINGLE_PLANE	0

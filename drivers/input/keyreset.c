@@ -327,8 +327,8 @@ int keyreset_remove(struct platform_device *pdev)
 {
 	struct keyreset_state *state = platform_get_drvdata(pdev);
 	if (board_build_flag()) {
-		input_unregister_handler(&state->input_handler);
-		kfree(state);
+	input_unregister_handler(&state->input_handler);
+	kfree(state);
 	}
 	return 0;
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -341,6 +341,10 @@ static int __devinit pm8xxx_vib_probe(struct platform_device *pdev)
 
 	__dump_vib_regs(vib, "boot_vib_default");
 
+	/*
+	 * Configure the vibrator, it operates in manual mode
+	 * for timed_output framework.
+	 */
 	rc = pm8xxx_vib_read_u8(vib, &val, VIB_DRV);
 	if (rc < 0)
 		goto err_read_vib;
@@ -354,6 +358,7 @@ static int __devinit pm8xxx_vib_probe(struct platform_device *pdev)
 	rc = timed_output_dev_register(&vib->timed_dev);
 	if (rc < 0)
 		goto err_read_vib;
+
 	rc = device_create_file(vib->timed_dev.dev, &dev_attr_voltage_level);
 	if (rc < 0) {
 		VIB_ERR_LOG("%s, create sysfs fail: voltage_level\n", __func__);
@@ -371,7 +376,9 @@ static int __devinit pm8xxx_vib_probe(struct platform_device *pdev)
 	pm8xxx_vib_enable(&vib->timed_dev, pdata->initial_vibrate_ms);
 
 	platform_set_drvdata(pdev, vib);
+
 	vib_dev = vib;
+
 	return 0;
 
 err_read_vib:
@@ -414,7 +421,6 @@ static void __exit pm8xxx_vib_exit(void)
 	platform_driver_unregister(&pm8xxx_vib_driver);
 }
 module_exit(pm8xxx_vib_exit);
-
 
 MODULE_ALIAS("platform:" PM8XXX_VIBRATOR_DEV_NAME);
 MODULE_DESCRIPTION("pm8xxx vibrator driver");

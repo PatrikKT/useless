@@ -194,6 +194,8 @@ static void syn_handle_block_touch(struct synaptics_ts_data *ts, int enable)
 	}
 }
 
+
+
 static void syn_page_select(struct i2c_client *client, uint8_t page)
 {
 	struct synaptics_ts_data *ts = i2c_get_clientdata(client);
@@ -3607,10 +3609,10 @@ static int synaptics_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 			&& getPowerKeyState() == 0
 #endif
 			 ) {
-				ret = i2c_syn_write_byte_data(client,
-					get_address_base(ts, 0x01, CONTROL_BASE), 0x02); 
-				if (ret < 0)
-					i2c_syn_error_handler(ts, ts->i2c_err_handler_en, "sleep: 0x02", __func__);
+			ret = i2c_syn_write_byte_data(client,
+				get_address_base(ts, 0x01, CONTROL_BASE), 0x02); 
+			if (ret < 0)
+				i2c_syn_error_handler(ts, ts->i2c_err_handler_en, "sleep: 0x02", __func__);
 			} else {
 				ret = i2c_syn_write_byte_data(client,
 					get_address_base(ts, 0x01, CONTROL_BASE), 0x01); 

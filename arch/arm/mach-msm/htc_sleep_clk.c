@@ -17,8 +17,9 @@
 
 #include <asm/mach-types.h>
 
-#include <mach/htc_sleep_clk.h>
 #include <linux/mfd/pm8xxx/pm8038.h>
+#include <mach/htc_sleep_clk.h>
+
 #include "board-8930.h"
 
 static int htc_sleep_clk_pin = -2;
@@ -59,10 +60,10 @@ int pmic_regulator_enable(struct regulator **preg, char *name, unsigned int volt
 			goto err_reg_get;
 		}
 
-		err = regulator_set_voltage(*preg, volt, volt);
-		if (err) {
-			printk(KERN_DEBUG "Unable to set %s voltage to %d, err=%d\n", name, volt, err);
-			goto err_reg_set;
+	err = regulator_set_voltage(*preg, volt, volt);
+	if (err) {
+		printk(KERN_DEBUG "Unable to set %s voltage to %d, err=%d\n", name, volt, err);
+		goto err_reg_set;
 		}
 
 		printk(KERN_DEBUG "HTC sleep clk: %s initialized\n", name);

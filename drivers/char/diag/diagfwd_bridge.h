@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -26,6 +26,9 @@ void diagfwd_bridge_init(int index);
 void diagfwd_bridge_exit(void);
 int diagfwd_read_complete_bridge(struct diag_request *diag_read_ptr);
 
+/* Diag-Bridge structure, n bridges can be used at same time
+ * for instance SMUX, HSIC working at same time
+ */
 struct diag_bridge_dev {
 	char name[20];
 	int enabled;

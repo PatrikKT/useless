@@ -1436,7 +1436,7 @@ static void batt_check_overload(void)
 	}
 }
 
-#define CHG_ONE_PERCENT_LIMIT_PERIOD_MS		(1000 * 60)
+#define CHG_ONE_PERCENT_LIMIT_PERIOD_MS	(1000 * 60)
 #define DISCHG_UPDATE_PERIOD_MS			(1000 * 60)
 #define ONE_PERCENT_LIMIT_PERIOD_MS		(1000 * (60 + 10))
 #define FIVE_PERCENT_LIMIT_PERIOD_MS	(1000 * (300 + 10))
@@ -1483,8 +1483,8 @@ static void batt_level_adjust(unsigned long time_since_last_update_ms)
 					__func__, level_since_last_update_ms);
 			if (time_since_last_update_ms < DISCHG_UPDATE_PERIOD_MS &&
 				level_since_last_update_ms < DISCHG_UPDATE_PERIOD_MS) {
-				htc_batt_info.rep.level = prev_level;
-				return;
+			htc_batt_info.rep.level = prev_level;
+			return;
 			}
 		}
 
@@ -1547,7 +1547,7 @@ static void batt_level_adjust(unsigned long time_since_last_update_ms)
 								drop_level,time_since_last_update_ms);
 					htc_batt_info.rep.level = prev_level - 3;
 				} else if (drop_level < 0) {
-					if (htc_batt_info.rep.pj_src > 0
+				if (htc_batt_info.rep.pj_src > 0
 							&& htc_batt_info.rep.pj_chg_status == PJ_CHG_STATUS_DCHG) {
 						
 						pr_info("[BATT] level increase due to PJ charge battery.");
@@ -1559,7 +1559,7 @@ static void batt_level_adjust(unsigned long time_since_last_update_ms)
 						htc_batt_info.rep.level = prev_level;
 					}
 				} else {
-					
+
 				}
 			}
 
@@ -1588,8 +1588,8 @@ static void batt_level_adjust(unsigned long time_since_last_update_ms)
 			htc_batt_info.igauge->is_battery_full(&is_full);
 			if (is_full != 0) {
 				if (htc_batt_info.smooth_chg_full_delay_min
-					&& prev_level < 100) {
-					htc_batt_info.rep.level = prev_level + 1;
+						&& prev_level < 100) {
+						htc_batt_info.rep.level = prev_level + 1;
 				} else {
 					htc_batt_info.rep.level = 100; 
 				}
@@ -1597,11 +1597,11 @@ static void batt_level_adjust(unsigned long time_since_last_update_ms)
 				if (99 < htc_batt_info.rep.level)
 					htc_batt_info.rep.level = 99; 
 				else if (prev_level < htc_batt_info.rep.level) {
-						if(time_since_last_update_ms >
-								CHG_ONE_PERCENT_LIMIT_PERIOD_MS)
-							htc_batt_info.rep.level = prev_level + 1;
-						else
-							htc_batt_info.rep.level = prev_level;
+					if(time_since_last_update_ms >
+							CHG_ONE_PERCENT_LIMIT_PERIOD_MS)
+						htc_batt_info.rep.level = prev_level + 1;
+					else
+						htc_batt_info.rep.level = prev_level;
 				}
 			}
 		}
@@ -1784,6 +1784,7 @@ static void power_jacket_level_update(int first)
 		htc_batt_info.rep.pj_level_pre, is_chg);
 
 	if (htc_batt_info.rep.pj_full == PJ_FULL) {
+		
 		htc_batt_info.rep.pj_level = 100;
 	} else if (htc_batt_info.rep.pj_vol < 2400) {
 		

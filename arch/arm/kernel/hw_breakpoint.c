@@ -706,10 +706,10 @@ static void watchpoint_handler(unsigned long addr, unsigned int fsr,
 				goto unlock;
 
 			/* Check that the access type matches. */
-			access = (fsr & ARM_FSR_ACCESS_MASK) ? HW_BREAKPOINT_W :
-				 HW_BREAKPOINT_R;
-			if (!(access & hw_breakpoint_type(wp)))
-				goto unlock;
+				access = (fsr & ARM_FSR_ACCESS_MASK) ?
+					  HW_BREAKPOINT_W : HW_BREAKPOINT_R;
+				if (!(access & hw_breakpoint_type(wp)))
+					goto unlock;
 
 			/* We have a winner. */
 			info->trigger = addr;

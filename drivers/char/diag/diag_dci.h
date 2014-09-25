@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -24,6 +24,10 @@
 #define DISABLE_LOG_MASK	0
 #define MAX_EVENT_SIZE		100
 
+
+/* 16 log code categories, each has:
+ * 1 bytes equip id + 1 dirty byte + 512 byte max log mask
+ */
 #define DCI_LOG_MASK_SIZE		(16*514)
 #define DCI_EVENT_MASK_SIZE		512
 #define DCI_MASK_STREAM			2
@@ -54,6 +58,7 @@ struct diag_dci_client_tbl {
 	int received_events;
 };
 
+/* This is used for DCI health stats */
 struct diag_dci_health_stats {
 	int dropped_logs;
 	int dropped_events;
@@ -63,13 +68,13 @@ struct diag_dci_health_stats {
 };
 
 enum {
-	DIAG_DCI_NO_ERROR = 1001,	
-	DIAG_DCI_NO_REG,		
-	DIAG_DCI_NO_MEM,		
-	DIAG_DCI_NOT_SUPPORTED,	
-	DIAG_DCI_HUGE_PACKET,	
-	DIAG_DCI_SEND_DATA_FAIL,
-	DIAG_DCI_TABLE_ERR	
+	DIAG_DCI_NO_ERROR = 1001,	/* No error */
+	DIAG_DCI_NO_REG,		/* Could not register */
+	DIAG_DCI_NO_MEM,		/* Failed memory allocation */
+	DIAG_DCI_NOT_SUPPORTED,	/* This particular client is not supported */
+	DIAG_DCI_HUGE_PACKET,	/* Request/Response Packet too huge */
+	DIAG_DCI_SEND_DATA_FAIL,/* writing to kernel or peripheral fails */
+	DIAG_DCI_TABLE_ERR	/* Error dealing with registration tables */
 };
 
 int diag_dci_init(void);

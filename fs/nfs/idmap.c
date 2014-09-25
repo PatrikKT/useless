@@ -52,6 +52,7 @@
 
 #define NFS_UINT_MAXLEN 11
 
+/* Default cache timeout is 10 minutes */
 unsigned int nfs_idmap_cache_timeout = 600;
 static const struct cred *id_resolver_cache;
 static struct key_type key_type_id_resolver_legacy;
@@ -110,6 +111,10 @@ static bool nfs_fattr_map_group_name(struct nfs_server *server, struct nfs_fattr
 	return true;
 }
 
+/**
+ * nfs_fattr_free_names - free up the NFSv4 owner and group strings
+ * @fattr: a fully initialised nfs_fattr structure
+ */
 void nfs_fattr_free_names(struct nfs_fattr *fattr)
 {
 	if (fattr->valid & NFS_ATTR_FATTR_OWNER_NAME)
@@ -118,6 +123,14 @@ void nfs_fattr_free_names(struct nfs_fattr *fattr)
 		nfs_fattr_free_group_name(fattr);
 }
 
+/**
+ * nfs_fattr_map_and_free_names - map owner/group strings into uid/gid and free
+ * @server: pointer to the filesystem nfs_server structure
+ * @fattr: a fully initialised nfs_fattr structure
+ *
+ * This helper maps the cached NFSv4 owner/group strings in fattr into
+ * their numeric uid/gid equivalents, and then frees the cached strings.
+ */
 void nfs_fattr_map_and_free_names(struct nfs_server *server, struct nfs_fattr *fattr)
 {
 	if (nfs_fattr_map_owner_name(server, fattr))
@@ -213,6 +226,13 @@ static void nfs_idmap_quit_keyring(void)
 	put_cred(id_resolver_cache);
 }
 
+/*
+ * Assemble the description to pass to request_key()
+ * This function will allocate a new string and update dest to point
+ * at it.  The caller is responsible for freeing dest.
+ *
+ * On error 0 is returned.  Otherwise, the length of dest is returned.
+ */
 static ssize_t nfs_idmap_get_desc(const char *name, size_t namelen,
 				const char *type, size_t typelen, char **desc)
 {
@@ -305,6 +325,7 @@ static ssize_t nfs_idmap_get_key(const char *name, size_t namelen,
 	return ret;
 }
 
+/* ID -> Name */
 static ssize_t nfs_idmap_lookup_name(__u32 id, const char *type, char *buf,
 				     size_t buflen, struct idmap *idmap)
 {
@@ -319,6 +340,7 @@ static ssize_t nfs_idmap_lookup_name(__u32 id, const char *type, char *buf,
 	return ret;
 }
 
+/* Name -> ID */
 static int nfs_idmap_lookup_id(const char *name, size_t namelen, const char *type,
 			       __u32 *id, struct idmap *idmap)
 {
@@ -337,6 +359,7 @@ static int nfs_idmap_lookup_id(const char *name, size_t namelen, const char *typ
 	return ret;
 }
 
+/* idmap classic begins here */
 module_param(nfs_idmap_cache_timeout, int, 0644);
 
 enum {
@@ -486,6 +509,13 @@ static int __rpc_pipefs_event(struct nfs_client *clp, unsigned long event,
 
 			parent = clp->cl_idmap->idmap_pipe->dentry->d_parent;
 			__nfs_idmap_unregister(clp->cl_idmap->idmap_pipe);
+			/*
+			 * Note: This is a dirty hack. SUNRPC hook has been
+			 * called already but simple_rmdir() call for the
+			 * directory returned with error because of idmap pipe
+			 * inside. Thus now we have to remove this directory
+			 * here.
+			 */
 			if (rpc_rmdir(parent))
 				printk(KERN_ERR "NFS: %s: failed to remove "
 					"clnt dir!\n", __func__);

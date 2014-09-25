@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -80,7 +80,7 @@ static void restart_modem(void)
 
 static void smsm_state_cb(void *data, uint32_t old_state, uint32_t new_state)
 {
-	
+	/* Ignore if we're the one that set SMSM_RESET */
 	if (crash_shutdown)
 		return;
 
@@ -91,7 +91,7 @@ static void smsm_state_cb(void *data, uint32_t old_state, uint32_t new_state)
 					"modem_st1/st2 partitions...\n");
 			msm_restart(RESTART_MODE_ERASE_EFS, "force-hard");
 		} else {
-			restart_modem();
+		restart_modem();
 		}
 	}
 }
@@ -101,6 +101,10 @@ static int modem_shutdown(const struct subsys_data *subsys)
 	void __iomem *q6_fw_wdog_addr;
 	void __iomem *q6_sw_wdog_addr;
 
+	/*
+	 * Disable the modem watchdog since it keeps running even after the
+	 * modem is shutdown.
+	 */
 	q6_fw_wdog_addr = ioremap_nocache(Q6_FW_WDOG_ENABLE, 4);
 	if (!q6_fw_wdog_addr)
 		return -ENOMEM;
@@ -142,6 +146,7 @@ void modem_crash_shutdown(const struct subsys_data *subsys)
 	smsm_reset_modem(SMSM_RESET);
 }
 
+/* FIXME: Get address, size from PIL */
 static struct ramdump_segment modemsw_segments[] = {
 	{0x89000000, 0x8D400000 - 0x89000000},
 };

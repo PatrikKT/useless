@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -41,8 +41,9 @@ struct apr_client client[APR_DEST_MAX][APR_CLIENT_MAX];
 static atomic_t dsp_state;
 static atomic_t modem_state;
 
-static wait_queue_head_t  dsp_wait;
-static wait_queue_head_t  modem_wait;
+static wait_queue_head_t dsp_wait;
+static wait_queue_head_t modem_wait;
+/* Subsystem restart: QDSP6 data, functions */
 static struct workqueue_struct *apr_reset_workqueue;
 static void apr_reset_deregister(struct work_struct *work);
 struct apr_reset_work {
@@ -148,8 +149,7 @@ static void apr_cb_func(void *buf, int len, void *priv)
 	pr_debug("\n*****************\n");
 
 	if (!buf || len <= APR_HDR_SIZE) {
-		pr_err("APR: Improper apr pkt received:%p %d\n",
-								buf, len);
+		pr_err("APR: Improper apr pkt received:%p %d\n", buf, len);
 		return;
 	}
 	hdr = buf;
@@ -174,8 +174,7 @@ static void apr_cb_func(void *buf, int len, void *priv)
 	}
 	msg_type = hdr->hdr_field;
 	msg_type = (msg_type >> 0x08) & 0x0003;
-	if (msg_type >= APR_MSG_TYPE_MAX &&
-			msg_type != APR_BASIC_RSP_RESULT) {
+	if (msg_type >= APR_MSG_TYPE_MAX && msg_type != APR_BASIC_RSP_RESULT) {
 		pr_err("APR: Wrong message type: %d\n", msg_type);
 		return;
 	}
@@ -192,8 +191,8 @@ static void apr_cb_func(void *buf, int len, void *priv)
 	if (hdr->src_domain == APR_DOMAIN_MODEM) {
 		src = APR_DEST_MODEM;
 		if (svc == APR_SVC_MVS || svc == APR_SVC_MVM ||
-			svc == APR_SVC_CVS || svc == APR_SVC_CVP ||
-			svc == APR_SVC_TEST_CLIENT)
+		    svc == APR_SVC_CVS || svc == APR_SVC_CVP ||
+		    svc == APR_SVC_TEST_CLIENT)
 			clnt = APR_CLIENT_VOICE;
 		else {
 			pr_err("APR: Wrong svc :%d\n", svc);
@@ -202,11 +201,11 @@ static void apr_cb_func(void *buf, int len, void *priv)
 	} else if (hdr->src_domain == APR_DOMAIN_ADSP) {
 		src = APR_DEST_QDSP6;
 		if (svc == APR_SVC_AFE || svc == APR_SVC_ASM ||
-			svc == APR_SVC_VSM || svc == APR_SVC_VPM ||
-			svc == APR_SVC_ADM || svc == APR_SVC_ADSP_CORE ||
-			svc == APR_SVC_USM ||
-			svc == APR_SVC_TEST_CLIENT || svc == APR_SVC_ADSP_MVM ||
-			svc == APR_SVC_ADSP_CVS || svc == APR_SVC_ADSP_CVP)
+		    svc == APR_SVC_VSM || svc == APR_SVC_VPM ||
+		    svc == APR_SVC_ADM || svc == APR_SVC_ADSP_CORE ||
+		    svc == APR_SVC_USM ||
+		    svc == APR_SVC_TEST_CLIENT || svc == APR_SVC_ADSP_MVM ||
+		    svc == APR_SVC_ADSP_CVS || svc == APR_SVC_ADSP_CVP)
 			clnt = APR_CLIENT_AUDIO;
 		else {
 			pr_err("APR: Wrong svc :%d\n", svc);
@@ -232,7 +231,7 @@ static void apr_cb_func(void *buf, int len, void *priv)
 	}
 	pr_debug("svc_idx = %d\n", i);
 	pr_debug("%x %x %x %p %p\n", c_svc->id, c_svc->dest_id,
-			c_svc->client_id, c_svc->fn, c_svc->priv);
+		 c_svc->client_id, c_svc->fn, c_svc->priv);
 	data.payload_size = hdr->pkt_size - hdr_size;
 	data.opcode = hdr->opcode;
 	data.src = src;
@@ -503,7 +502,7 @@ int apr_deregister(void *handle)
 		svc->need_reset = 0x0;
 	}
 	if (client[dest_id][client_id].handle &&
-		!client[dest_id][client_id].svc_cnt) {
+	    !client[dest_id][client_id].svc_cnt) {
 		apr_tal_close(client[dest_id][client_id].handle);
 		client[dest_id][client_id].handle = NULL;
 	}
@@ -551,6 +550,7 @@ int adsp_state(int state)
 	return 0;
 }
 
+/* Dispatch the Reset events to Modem and audio clients */
 void dispatch_event(unsigned long code, unsigned short proc)
 {
 	struct apr_client *apr_client;
@@ -603,7 +603,7 @@ void dispatch_event(unsigned long code, unsigned short proc)
 }
 
 static int modem_notifier_cb(struct notifier_block *this, unsigned long code,
-								void *_cmd)
+			     void *_cmd)
 {
 	switch (code) {
 	case SUBSYS_BEFORE_SHUTDOWN:
@@ -636,7 +636,7 @@ static struct notifier_block mnb = {
 };
 
 static int lpass_notifier_cb(struct notifier_block *this, unsigned long code,
-								void *_cmd)
+			     void *_cmd)
 {
 	switch (code) {
 	case SUBSYS_BEFORE_SHUTDOWN:
@@ -683,8 +683,7 @@ static int __init apr_init(void)
 		}
 	mutex_init(&q6.lock);
 	dsp_debug_register(adsp_state);
-	apr_reset_workqueue =
-		create_singlethread_workqueue("apr_driver");
+	apr_reset_workqueue = create_singlethread_workqueue("apr_driver");
 	if (!apr_reset_workqueue)
 		return -ENOMEM;
 

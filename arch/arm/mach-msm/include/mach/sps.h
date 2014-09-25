@@ -412,44 +412,418 @@ struct sps_pipe;
 int sps_register_bam_device(const struct sps_bam_props *bam_props,
 			    u32 *dev_handle);
 
+/**
+ * Deregister a BAM device
+ *
+ * This function deregisters a BAM device from the SPS driver. The peripheral
+ * driver should deregister a BAM when the peripheral driver is shut down or
+ * when BAM use should be disabled.
+ *
+ * A BAM cannot be deregistered if any of its pipes is in an active connection.
+ *
+ * When all BAMs have been deregistered, the system is free to unload the
+ * SPS driver.
+ *
+ * @dev_handle - BAM device handle.
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_deregister_bam_device(u32 dev_handle);
 
+/**
+ * Allocate client state context
+ *
+ * This function allocate and initializes a client state context struct.
+ *
+ * @return pointer to client state context
+ *
+ */
 struct sps_pipe *sps_alloc_endpoint(void);
 
+/**
+ * Free client state context
+ *
+ * This function de-initializes and free a client state context struct.
+ *
+ * @ctx - client context for SPS connection end point
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_free_endpoint(struct sps_pipe *h);
 
+/**
+ * Get the configuration parameters for an SPS connection end point
+ *
+ * This function retrieves the configuration parameters for an SPS connection
+ * end point.
+ * This function may be called before the end point is connected (before
+ * sps_connect is called). This allows the client to specify parameters before
+ * the connection is established.
+ *
+ * The client must call this function to fill it's struct sps_connect
+ * struct before modifying values and passing the struct to sps_set_config().
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @config - Pointer to buffer for the end point's configuration parameters.
+ * Must not be NULL.
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_get_config(struct sps_pipe *h, struct sps_connect *config);
 
+/**
+ * Allocate memory from the SPS Pipe-Memory.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @mem - memory type - N/A.
+ *
+ * @mem_buffer - Pointer to struct for allocated memory properties.
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_alloc_mem(struct sps_pipe *h, enum sps_mem mem,
 		  struct sps_mem_buffer *mem_buffer);
 
+/**
+ * Free memory from the SPS Pipe-Memory.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @mem_buffer - Pointer to struct for allocated memory properties.
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_free_mem(struct sps_pipe *h, struct sps_mem_buffer *mem_buffer);
 
+/**
+ * Connect an SPS connection end point
+ *
+ * This function creates a connection between two SPS peripherals or between
+ * an SPS peripheral and the local host processor (via system memory, end
+ *point SPS_DEV_HANDLE_MEM). Establishing the connection includes
+ * initialization of the SPS hardware and allocation of any other connection
+ * resources (buffer memory, etc.).
+ *
+ * This function requires the client to specify both the source and
+ * destination end points of the SPS connection. However, the handle
+ * returned applies only to the end point of the connection that the client
+ * controls. The end point under control must be specified by the
+ * enum sps_mode mode argument, either SPS_MODE_SRC, SPS_MODE_DEST, or
+ * SPS_MODE_CTL. Note that SPS_MODE_CTL is only supported for I/O
+ * accelerator connections, and only a limited set of control operations are
+ * allowed (TBD).
+ *
+ * For a connection involving system memory
+ * (SPS_DEV_HANDLE_MEM), the peripheral end point must be
+ * specified. For example, SPS_MODE_SRC must be specified for a
+ * BAM-to-system connection, since the BAM pipe is the data
+ * producer.
+ *
+ * For a specific peripheral-to-peripheral connection, there may be more than
+ * one required configuration. For example, there might be high-performance
+ * and low-power configurations for a connection between the two peripherals.
+ * The config argument allows the client to specify different configurations,
+ * which may require different system resource allocations and hardware
+ * initialization.
+ *
+ * A client is allowed to create one and only one connection for its
+ * struct sps_pipe. The handle is used to identify the connection end point
+ * in subsequent SPS driver calls. A specific connection source or
+ * destination end point can be associated with one and only one
+ * struct sps_pipe.
+ *
+ * The client must establish an open device handle to the SPS. To do so, the
+ * client must attach to the SPS driver and open the SPS device by calling
+ * the following functions.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @connect - Pointer to connection parameters
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_connect(struct sps_pipe *h, struct sps_connect *connect);
 
+/**
+ * Disconnect an SPS connection end point
+ *
+ * This function disconnects an SPS connection end point.
+ * The SPS hardware associated with that end point will be disabled.
+ * For a connection involving system memory (SPS_DEV_HANDLE_MEM), all
+ * connection resources are deallocated. For a peripheral-to-peripheral
+ * connection, the resources associated with the connection will not be
+ * deallocated until both end points are closed.
+ *
+ * The client must call sps_connect() for the handle before calling
+ * this function.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_disconnect(struct sps_pipe *h);
 
+/**
+ * Register an event object for an SPS connection end point
+ *
+ * This function registers a callback event object for an SPS connection end
+ *point. The registered event object will be triggered for the set of
+ * events specified in reg->options that are enabled for the end point.
+ *
+ * There can only be one registered event object for each event. If an event
+ * object is already registered for an event, it will be replaced. If
+ *reg->event handle is NULL, then any registered event object for the
+ * event will be deregistered. Option bits in reg->options not associated
+ * with events are ignored.
+ *
+ * The client must call sps_connect() for the handle before calling
+ * this function.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @reg - Pointer to event registration parameters
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_register_event(struct sps_pipe *h, struct sps_register_event *reg);
 
+/**
+ * Perform a single DMA transfer on an SPS connection end point
+ *
+ * This function submits a DMA transfer request consisting of a single buffer
+ * for an SPS connection end point associated with a peripheral-to/from-memory
+ * connection. The request will be submitted immediately to hardware if the
+ * hardware is idle (data flow off, no other pending transfers). Otherwise, it
+ * will be queued for later handling in the SPS driver work loop.
+ *
+ * The data buffer must be DMA ready. The client is responsible for insuring
+ *physically contiguous memory, cache maintenance, and memory barrier. For
+ * more information, see Appendix A.
+ *
+ * The client must not modify the data buffer until the completion indication is
+ * received.
+ *
+ * This function cannot be used if transfer queuing is disabled (see option
+ * SPS_O_NO_Q). The client must set the SPS_O_EOT option to receive a callback
+ * event trigger when the transfer is complete. The SPS driver will insure the
+ * appropriate flags in the I/O vectors are set to generate the completion
+ * indication.
+ *
+ * The return value from this function may indicate that an error occurred.
+ * Possible causes include invalid arguments.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @addr - Physical address of buffer to transfer.
+ *
+ * WARNING: The memory provided	should be physically contiguous and
+ * non-cached.
+ *
+ * The user can use one of the following:
+ * 1. sps_alloc_mem() - allocated from pipe-memory.
+ * 2. dma_alloc_coherent() - allocate DMA memory.
+ * 3. dma_map_single() for memory allocated by kmalloc().
+ *
+ * @size - Size in bytes of buffer to transfer
+ *
+ * @user - User pointer that will be returned to user as part of
+ *  event payload
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_transfer_one(struct sps_pipe *h, u32 addr, u32 size,
 		     void *user, u32 flags);
 
+/**
+ * Read event queue for an SPS connection end point
+ *
+ * This function reads event queue for an SPS connection end point.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @event - pointer to client's event data buffer
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_get_event(struct sps_pipe *h, struct sps_event_notify *event);
 
+/**
+ * Get processed I/O vector (completed transfers)
+ *
+ * This function fetches the next processed I/O vector.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @iovec - Pointer to I/O vector struct (output).
+ * This struct will be zeroed if there are no more processed I/O vectors.
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_get_iovec(struct sps_pipe *h, struct sps_iovec *iovec);
 
+/**
+ * Enable an SPS connection end point
+ *
+ * This function enables an SPS connection end point.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_flow_on(struct sps_pipe *h);
 
+/**
+ * Disable an SPS connection end point
+ *
+ * This function disables an SPS connection end point.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @mode - Desired mode for disabling pipe data flow
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_flow_off(struct sps_pipe *h, enum sps_flow_off mode);
 
+/**
+ * Perform a Multiple DMA transfer on an SPS connection end point
+ *
+ * This function submits a DMA transfer request for an SPS connection end point
+ * associated with a peripheral-to/from-memory connection. The request will be
+ * submitted immediately to hardware if the hardware is idle (data flow off, no
+ * other pending transfers). Otherwise, it will be queued for later handling in
+ * the SPS driver work loop.
+ *
+ * The data buffers referenced by the I/O vectors must be DMA ready.
+ * The client is responsible for insuring physically contiguous memory,
+ * any cache maintenance, and memory barrier. For more information,
+ * see Appendix A.
+ *
+ * The I/O vectors must specify physical addresses for the referenced buffers.
+ *
+ * The client must not modify the data buffers referenced by I/O vectors until
+ * the completion indication is received.
+ *
+ * If transfer queuing is disabled (see option SPS_O_NO_Q), the client is
+ * responsible for setting the appropriate flags in the I/O vectors to generate
+ * the completion indication. Also, the client is responsible for enabling the
+ * appropriate connection callback event options for completion indication (see
+ * sps_connect(), sps_set_config()).
+ *
+ * If transfer queuing is enabled, the client must set the SPS_O_EOT option to
+ * receive a callback event trigger when the transfer is complete. The SPS
+ * driver will insure the appropriate flags in the I/O vectors are set to
+ * generate the completion indication. The client must not set any flags in the
+ * I/O vectors, as this may cause the SPS driver to become out of sync with the
+ * hardware.
+ *
+ * The return value from this function may indicate that an error occurred.
+ * Possible causes include invalid arguments. If transfer queuing is disabled,
+ * an error will occur if the pipe is already processing a transfer.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @transfer - Pointer to transfer parameter struct
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_transfer(struct sps_pipe *h, struct sps_transfer *transfer);
 
+/**
+ * Determine whether an SPS connection end point FIFO is empty
+ *
+ * This function returns the empty state of an SPS connection end point.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @empty - pointer to client's empty status word (boolean)
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_is_pipe_empty(struct sps_pipe *h, u32 *empty);
 
+/**
+ * Reset an SPS BAM device
+ *
+ * This function resets an SPS BAM device.
+ *
+ * @dev - device handle for the BAM
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_device_reset(u32 dev);
 
+/**
+ * Set the configuration parameters for an SPS connection end point
+ *
+ * This function sets the configuration parameters for an SPS connection
+ * end point. This function may be called before the end point is connected
+ * (before sps_connect is called). This allows the client to specify
+ *parameters before the connection is established. The client is allowed
+ * to pre-allocate resources and override driver defaults.
+ *
+ * The client must call sps_get_config() to fill it's struct sps_connect
+ * struct before modifying values and passing the struct to this function.
+ * Only those parameters that differ from the current configuration will
+ * be processed.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @config - Pointer to the end point's new configuration parameters.
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_set_config(struct sps_pipe *h, struct sps_connect *config);
 
+/**
+ * Set ownership of an SPS connection end point
+ *
+ * This function sets the ownership of an SPS connection end point to
+ * either local (default) or non-local. This function is used to
+ * retrieve the struct sps_connect data that must be used by a
+ * satellite processor when calling sps_connect().
+ *
+ * Non-local ownership is only possible/meaningful on the processor
+ * that controls resource allocations (apps processor). Setting ownership
+ * to non-local on a satellite processor will fail.
+ *
+ * Setting ownership from non-local to local will succeed only if the
+ * owning satellite processor has properly brought the end point to
+ * an idle condition.
+ *
+ * This function will succeed if the connection end point is already in
+ * the specified ownership state.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @owner - New ownership of the connection end point
+ *
+ * @connect - Pointer to buffer for satellite processor connect data.
+ *  Can be NULL to avoid retrieving the connect data. Will be ignored
+ *  if the end point ownership is set to local.
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_set_owner(struct sps_pipe *h, enum sps_owner owner,
 		  struct sps_satellite *connect);
 
@@ -473,24 +847,113 @@ int sps_set_owner(struct sps_pipe *h, enum sps_owner owner,
 int sps_alloc_dma_chan(const struct sps_alloc_dma_chan *alloc,
 		       struct sps_dma_chan *chan);
 
+/**
+ * Free a BAM DMA channel
+ *
+ * This function frees a BAM DMA channel.
+ *
+ * @chan - Pointer to information for channel to free
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_free_dma_chan(struct sps_dma_chan *chan);
 
+/**
+ * Get the BAM handle for BAM-DMA.
+ *
+ * The BAM handle should be use as source/destination in the sps_connect().
+ *
+ * @return handle on success, zero on error
+ *
+ */
 u32 sps_dma_get_bam_handle(void);
 
+/**
+ * Free the BAM handle for BAM-DMA.
+ *
+ */
 void sps_dma_free_bam_handle(u32 h);
 
 
+/**
+ * Get number of free transfer entries for an SPS connection end point
+ *
+ * This function returns the number of free transfer entries for an
+ * SPS connection end point.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @count - pointer to count status
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_get_free_count(struct sps_pipe *h, u32 *count);
 
+/**
+ * Perform timer control
+ *
+ * This function performs timer control operations.
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @timer_ctrl - Pointer to timer control specification
+ *
+ * @timer_result - Pointer to buffer for timer operation result.
+ *  This argument can be NULL if no result is expected for the operation.
+ *  If non-NULL, the current timer value will always provided.
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_timer_ctrl(struct sps_pipe *h,
 		   struct sps_timer_ctrl *timer_ctrl,
 		   struct sps_timer_result *timer_result);
 
+/**
+ * Find the handle of a BAM device based on the physical address
+ *
+ * This function finds a BAM device in the BAM registration list that
+ * matches the specified physical address, and returns its handle.
+ *
+ * @phys_addr - physical address of the BAM
+ *
+ * @h - device handle of the BAM
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_phy2h(u32 phys_addr, u32 *handle);
 
+/**
+ * Setup desc/data FIFO for bam-to-bam connection
+ *
+ * @mem_buffer - Pointer to struct for allocated memory properties.
+ *
+ * @addr - address of FIFO
+ *
+ * @size - FIFO size
+ *
+ * @use_offset - use address offset instead of absolute address
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_setup_bam2bam_fifo(struct sps_mem_buffer *mem_buffer,
 		  u32 addr, u32 size, int use_offset);
 
+/**
+ * Get the number of unused descriptors in the descriptor FIFO
+ * of a pipe
+ *
+ * @h - client context for SPS connection end point
+ *
+ * @desc_num - number of unused descriptors
+ *
+ * @return 0 on success, negative value on error
+ *
+ */
 int sps_get_unused_desc_num(struct sps_pipe *h, u32 *desc_num);
 
 int sps_get_bam_debug_info(u32 dev, u32 option);
@@ -653,4 +1116,4 @@ static inline int sps_get_unused_desc_num(struct sps_pipe *h, u32 *desc_num)
 }
 #endif
 
-#endif 
+#endif /* _SPS_H_ */

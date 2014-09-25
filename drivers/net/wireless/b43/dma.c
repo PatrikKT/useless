@@ -409,7 +409,7 @@ static inline
 				struct b43_dmadesc_meta *meta)
 {
 	if (meta->skb) {
-		dev_kfree_skb_any(meta->skb);
+			dev_kfree_skb_any(meta->skb);
 		meta->skb = NULL;
 	}
 }
@@ -1502,7 +1502,7 @@ void b43_dma_handle_txstatus(struct b43_wldev *dev,
 		/* This possibly is a firmware bug and will result in
 		 * malfunction, memory leaks and/or stall of DMA functionality. */
 		b43dbg(dev->wl, "Out of order TX status report on DMA ring %d. "
-		       "Expected %d, but got %d\n",
+	"Expected %d, but got %d\n",
 		       ring->index, firstused, slot);
 		return;
 	}
@@ -1519,11 +1519,13 @@ void b43_dma_handle_txstatus(struct b43_wldev *dev,
 			       slot, firstused, ring->index);
 			break;
 		}
+
 		if (meta->skb) {
 			struct b43_private_tx_info *priv_info =
-				b43_get_priv_tx_info(IEEE80211_SKB_CB(meta->skb));
+			     b43_get_priv_tx_info(IEEE80211_SKB_CB(meta->skb));
 
-			unmap_descbuffer(ring, meta->dmaaddr, meta->skb->len, 1);
+			unmap_descbuffer(ring, meta->dmaaddr,
+					 meta->skb->len, 1);
 			kfree(priv_info->bouncebuffer);
 			priv_info->bouncebuffer = NULL;
 		} else {
@@ -1547,7 +1549,10 @@ void b43_dma_handle_txstatus(struct b43_wldev *dev,
 
 			/*
 			 * Call back to inform the ieee80211 subsystem about
-			 * the status of the transmission.
+			 * the status of the transmission. When skipping over
+			 * a missed TX status report, use a status structure
+			 * filled with zeros to indicate that the frame was not
+			 * sent (frame_count 0) and not acknowledged
 			 */
 			frame_succeed = b43_fill_txstatus_report(dev, info, status);
 #ifdef CONFIG_B43_DEBUG

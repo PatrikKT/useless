@@ -681,11 +681,9 @@ static int mmc_select_powerclass(struct mmc_card *card,
 	if (ext_csd == NULL)
 		return 0;
 
-	
 	if (card->csd.mmca_vsn < CSD_SPEC_VER_4)
 		return 0;
 
-	
 	if (bus_width == EXT_CSD_BUS_WIDTH_1)
 		return 0;
 
@@ -792,7 +790,6 @@ static int mmc_select_hs200(struct mmc_card *card)
 			break;
 	}
 
-	
 	if (!err)
 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
 				 EXT_CSD_HS_TIMING, 2, 0);
@@ -834,18 +831,15 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 	BUG_ON(!host);
 	WARN_ON(!host->claimed);
 
-	
 	if (!mmc_host_is_spi(host))
 		mmc_set_bus_mode(host, MMC_BUSMODE_OPENDRAIN);
 
-	
 	mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_330, 0);
 
 	atomic_set(&emmc_reboot, 0);
 
 	mmc_go_idle(host);
 
-	
 	err = mmc_send_op_cond(host, ocr | (1 << 30), &rocr);
 	if (err)
 		goto err;
@@ -1605,7 +1599,6 @@ int mmc_attach_mmc(struct mmc_host *host)
 	BUG_ON(!host);
 	WARN_ON(!host->claimed);
 
-	
 	if (!mmc_host_is_spi(host))
 		mmc_set_bus_mode(host, MMC_BUSMODE_OPENDRAIN);
 

@@ -74,10 +74,11 @@
 #include <asm/tlbflush.h>
 #include <asm/io.h>
 
-#define PCPU_SLOT_BASE_SHIFT		5	
-#define PCPU_DFL_MAP_ALLOC		16	
+#define PCPU_SLOT_BASE_SHIFT		5	/* 1-31 shares the same slot */
+#define PCPU_DFL_MAP_ALLOC		16	/* start a map with 16 ents */
 
 #ifdef CONFIG_SMP
+/* default addr <-> pcpu_ptr mapping, override in asm/percpu.h if necessary */
 #ifndef __addr_to_pcpu_ptr
 #define __addr_to_pcpu_ptr(addr)					\
 	(void __percpu *)((unsigned long)(addr) -			\
@@ -90,22 +91,23 @@
 			 (unsigned long)pcpu_base_addr -		\
 			 (unsigned long)__per_cpu_start)
 #endif
-#else	
+#else	/* CONFIG_SMP */
+/* on UP, it's always identity mapped */
 #define __addr_to_pcpu_ptr(addr)	(void __percpu *)(addr)
 #define __pcpu_ptr_to_addr(ptr)		(void __force *)(ptr)
-#endif	
+#endif	/* CONFIG_SMP */
 
 struct pcpu_chunk {
-	struct list_head	list;		
-	int			free_size;	
-	int			contig_hint;	
-	void			*base_addr;	
-	int			map_used;	
-	int			map_alloc;	
-	int			*map;		
-	void			*data;		
-	bool			immutable;	
-	unsigned long		populated[];	
+	struct list_head	list;		/* linked to pcpu_slot lists */
+	int			free_size;	/* free bytes in the chunk */
+	int			contig_hint;	/* max contiguous size hint */
+	void			*base_addr;	/* base address of this chunk */
+	int			map_used;	/* # of map entries used */
+	int			map_alloc;	/* # of map entries allocated */
+	int			*map;		/* allocation map */
+	void			*data;		/* chunk data */
+	bool			immutable;	/* no [de]population allowed */
+	unsigned long		populated[];	/* populated bitmap */
 };
 
 static int pcpu_unit_pages __read_mostly;

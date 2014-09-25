@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -60,7 +60,7 @@
 #define RIVA_PLL_N_VAL			(MSM_CLK_CTL_BASE + 0x31Ac)
 #define RIVA_PLL_CONFIG			(MSM_CLK_CTL_BASE + 0x31B4)
 #define RIVA_PLL_STATUS			(MSM_CLK_CTL_BASE + 0x31B8)
-#define RIVA_RESET			    (MSM_CLK_CTL_BASE + 0x35E0)
+#define RIVA_RESET			(MSM_CLK_CTL_BASE + 0x35E0)
 
 #define RIVA_PMU_ROOT_CLK_SEL		0xC8
 #define RIVA_PMU_ROOT_CLK_SEL_3		BIT(2)
@@ -132,46 +132,6 @@ enum
   CLOCK_SOURCE_PLL13  
 };
 
-#ifdef CONFIG_QUALCOMM_WLAN_PXO
-static bool Clock_WaitForPLLActive (u32 nPLL)
-{
-  u32 nLoops = 100;
-  u32 nRegAddr, nRegMask;
-
-  switch(nPLL)
-  {
-    case CLOCK_SOURCE_PLL4:
-      nRegAddr = HWIO_LCC_PLL0_STATUS_ADDR;
-      nRegMask = HWIO_LCC_PLL0_STATUS_PLL_ACTIVE_FLAG_BMSK;
-      break;
-    case CLOCK_SOURCE_PLL5:
-      nRegAddr = (u32)HWIO_PLL5_STATUS_ADDR;
-      nRegMask = HWIO_PLL5_STATUS_PLL_ACTIVE_FLAG_BMSK;
-      break;
-    case CLOCK_SOURCE_PLL13:
-      nRegAddr = (u32)HWIO_RIVA_PLL_STATUS_ADDR;
-      nRegMask = 0x1;
-      break;
-    default:
-      return FALSE;
-  }
-
-  while(nLoops > 0)
-  {
-    if(__inpdw(nRegAddr) & nRegMask)
-    {
-      return TRUE;
-    }
-
-    udelay(1);
-    nLoops--;
-  }
-
-  return FALSE;
-
-} 
-#endif
-
 static bool cxo_is_needed(struct riva_data *drv)
 {
 	u32 reg = readl_relaxed(drv->base + RIVA_PMU_CFG);
@@ -224,25 +184,13 @@ static int pil_riva_reset(struct pil_desc *pil)
 	void __iomem *base = drv->base;
 	unsigned long start_addr = drv->start_addr;
 	bool use_cxo = cxo_is_needed(drv);
-#ifdef CONFIG_QUALCOMM_WLAN_PXO
-	u32 nLoopCount = 25;
-	u32 nRetryCount = 5;
-	u32 hw_ver_id;
-	hw_ver_id = (readl(HW_VER_ID_VIRT)& 0xf0000000) >> 28;
 
-	printk("[WLAN][SSR] Get hw_ver_id = %#x\n", hw_ver_id);
-#endif
-
-	
+	/* Enable A2XB bridge */
 	reg = readl_relaxed(base + RIVA_PMU_A2XB_CFG);
 	reg |= RIVA_PMU_A2XB_CFG_EN;
 	writel_relaxed(reg, base + RIVA_PMU_A2XB_CFG);
 
-#ifdef CONFIG_QUALCOMM_WLAN_PXO
-	while (nRetryCount > 0)
-	{
-#endif
-	
+	/* Program PLL 13 to 960 MHz */
 	reg = readl_relaxed(RIVA_PLL_MODE);
 	reg &= ~(PLL_MODE_BYPASSNL | PLL_MODE_OUTCTRL | PLL_MODE_RESET_N);
 	writel_relaxed(reg, RIVA_PLL_MODE);
@@ -260,10 +208,14 @@ static int pil_riva_reset(struct pil_desc *pil)
 	reg |= use_cxo ? PLL_MODE_REF_XO_SEL_CXO : PLL_MODE_REF_XO_SEL_RF;
 	writel_relaxed(reg, RIVA_PLL_MODE);
 
-	
+	/* Enable PLL 13 */
 	reg |= PLL_MODE_BYPASSNL;
 	writel_relaxed(reg, RIVA_PLL_MODE);
 
+	/*
+	 * H/W requires a 5us delay between disabling the bypass and
+	 * de-asserting the reset. Delay 10us just to be safe.
+	 */
 	mb();
 	usleep_range(10, 20);
 
@@ -272,53 +224,10 @@ static int pil_riva_reset(struct pil_desc *pil)
 	reg |= PLL_MODE_OUTCTRL;
 	writel_relaxed(reg, RIVA_PLL_MODE);
 
-	
+	/* Wait for PLL to settle */
 	mb();
 	usleep_range(50, 100);
 
-	
-#ifdef CONFIG_QUALCOMM_WLAN_PXO
-	if (hw_ver_id >= APQ8064_HW_VER_1_0) {
-		printk("[WLAN][SSR] Wait for PLL warm-up\n");
-		
-		while(nLoopCount > 0) 
-		{
-			udelay(CLOCK_PLL_WARMUP_TIME_US);
-			if(in_dword_masked(HWIO_PLL_LOCK_DET_STATUS_ADDR, 0xffffffff) & (1 << 13))
-			{break;}
-			nLoopCount--;
-		}
-
-		if(nLoopCount == 0)
-		{
-			
-			
-			printk("[WLAN][SSR] PLL lock detection failed!, retry %d\n", (5-nRetryCount));
-                        nRetryCount--;
-			nLoopCount = 25;
-			continue;
-		}
-		printk("[WLAN][SSR] Check PLL lock detection passed\n");
-
-		HWIO_RIVA_PLL_MODE_OUTM(0x1, (u32)(1) << (0x0)); 
-
-		if (Clock_WaitForPLLActive(CLOCK_SOURCE_PLL13) == FALSE)
-		
-		{
-			nRetryCount--;
-			nLoopCount = 25;
-			continue;
-		}
-		printk("[WLAN][SSR] Wait for PLL Active ...OK!\n");
-		break;
-	}
-#endif
-	
-#ifdef CONFIG_QUALCOMM_WLAN_PXO
-	}
-#endif
-
-	
 	sel = readl_relaxed(base + RIVA_PMU_ROOT_CLK_SEL);
 	reg = readl_relaxed(base + RIVA_PMU_CLK_ROOT3);
 	if (sel & RIVA_PMU_ROOT_CLK_SEL_3) {
@@ -339,36 +248,24 @@ static int pil_riva_reset(struct pil_desc *pil)
 	reg ^= RIVA_PMU_ROOT_CLK_SEL_3;
 	writel_relaxed(reg, base + RIVA_PMU_ROOT_CLK_SEL);
 
-	
+	/* Use the high vector table */
 	reg = readl_relaxed(base + RIVA_PMU_CCPU_CTL);
 	reg |= RIVA_PMU_CCPU_CTL_HIGH_IVT | RIVA_PMU_CCPU_CTL_REMAP_EN;
 	writel_relaxed(reg, base + RIVA_PMU_CCPU_CTL);
 
-	
+	/* Set base memory address */
 	writel_relaxed(start_addr >> 16, base + RIVA_PMU_CCPU_BOOT_REMAP_ADDR);
 
-	
+	/* Clear warmboot bit indicating this is a cold boot */
 	reg = readl_relaxed(base + RIVA_PMU_CFG);
 	reg &= ~(RIVA_PMU_CFG_WARM_BOOT);
 	writel_relaxed(reg, base + RIVA_PMU_CFG);
 
-	
+	/* Enable the cCPU clock */
 	reg = readl_relaxed(base + RIVA_PMU_OVRD_VAL);
 	reg |= RIVA_PMU_OVRD_VAL_CCPU_CLK;
 	writel_relaxed(reg, base + RIVA_PMU_OVRD_VAL);
 
-	
-#ifdef CONFIG_QUALCOMM_WLAN_PXO
-	if (hw_ver_id >= APQ8064_HW_VER_2_0) {
-		printk("[WLAN][SSR] Use PXO for RIVA\n");
-		HWIO_RIVA_RESET_OUTM((0x2),(u32)(1) << (0x1)); 
-		HWIO_RIVA_XO_SRC_CLK_CTL_OUTM((0x00000004), (u32)(1) << (0x2)); 
-		HWIO_RIVA_RESET_OUTM((0x2),(u32)(0) << (0x1)); 
-	}
-#endif
-	
-
-	
 	reg |= RIVA_PMU_OVRD_VAL_CCPU_RESET;
 	writel_relaxed(reg, base + RIVA_PMU_OVRD_VAL);
 
@@ -377,13 +274,12 @@ static int pil_riva_reset(struct pil_desc *pil)
 
 static int pil_riva_shutdown(struct pil_desc *pil)
 {
-
-	
+	/* Assert reset to Riva */
 	writel_relaxed(1, RIVA_RESET);
 	mb();
 	usleep_range(1000, 2000);
 
-	
+	/* Deassert reset to Riva */
 	writel_relaxed(0, RIVA_RESET);
 	mb();
 

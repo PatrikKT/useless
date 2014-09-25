@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -65,6 +65,12 @@ struct scm_command {
 	u32	buf[0];
 };
 
+/**
+ * struct scm_response - one SCM response buffer
+ * @len: total available memory for response
+ * @buf_offset: start of response data relative to start of scm_response
+ * @is_complete: indicates if the command has finished processing
+ */
 struct scm_response {
 	u32	len;
 	u32	buf_offset;
@@ -103,11 +109,23 @@ static inline struct scm_response *scm_command_to_response(
 	return (void *)cmd + cmd->resp_hdr_offset;
 }
 
+/**
+ * scm_get_command_buffer() - Get a pointer to a command buffer
+ * @cmd: command
+ *
+ * Returns a pointer to the command buffer of a command.
+ */
 static inline void *scm_get_command_buffer(const struct scm_command *cmd)
 {
 	return (void *)cmd->buf;
 }
 
+/**
+ * scm_get_response_buffer() - Get a pointer to a response buffer
+ * @rsp: response
+ *
+ * Returns a pointer to a response buffer of a response.
+ */
 static inline void *scm_get_response_buffer(const struct scm_response *rsp)
 {
 	return (void *)rsp + rsp->buf_offset;
@@ -158,6 +176,11 @@ static int __scm_call(const struct scm_command *cmd)
 	int ret;
 	u32 cmd_addr = virt_to_phys(cmd);
 
+	/*
+	 * Flush the entire cache here so callers don't have to remember
+	 * to flush the cache when passing physical addresses to the secure
+	 * side in the buffer.
+	 */
 	flush_cache_all();
 	ret = smc(cmd_addr);
 	if (ret < 0)
@@ -182,6 +205,23 @@ void scm_inv_range(unsigned long start, unsigned long end)
 }
 EXPORT_SYMBOL(scm_inv_range);
 
+/**
+ * scm_call_common() - Send an SCM command
+ * @svc_id: service identifier
+ * @cmd_id: command identifier
+ * @cmd_buf: command buffer
+ * @cmd_len: length of the command buffer
+ * @resp_buf: response buffer
+ * @resp_len: length of the response buffer
+ * @scm_buf: internal scm structure used for passing data
+ * @scm_buf_len: length of the internal scm structure
+ *
+ * Core function to scm call. Initializes the given cmd structure with
+ * appropriate values and makes the actual scm call. Validation of cmd
+ * pointer and length must occur in the calling function.
+ *
+ * Returns the appropriate error code from the scm call
+ */
 
 static int scm_call_common(u32 svc_id, u32 cmd_id, const void *cmd_buf,
 				size_t cmd_len, void *resp_buf, size_t resp_len,
@@ -222,6 +262,13 @@ static int scm_call_common(u32 svc_id, u32 cmd_id, const void *cmd_buf,
 	return ret;
 }
 
+/**
+ * scm_call_noalloc - Send an SCM command
+ *
+ * Same as scm_call except clients pass in a buffer (@scm_buf) to be used for
+ * scm internal structures. The buffer should be allocated with
+ * DEFINE_SCM_BUFFER to account for the proper alignment and size.
+ */
 int scm_call_noalloc(u32 svc_id, u32 cmd_id, const void *cmd_buf,
 		size_t cmd_len, void *resp_buf, size_t resp_len,
 		void *scm_buf, size_t scm_buf_len)
@@ -244,6 +291,24 @@ int scm_call_noalloc(u32 svc_id, u32 cmd_id, const void *cmd_buf,
 
 }
 
+/**
+ * scm_call() - Send an SCM command
+ * @svc_id: service identifier
+ * @cmd_id: command identifier
+ * @cmd_buf: command buffer
+ * @cmd_len: length of the command buffer
+ * @resp_buf: response buffer
+ * @resp_len: length of the response buffer
+ *
+ * Sends a command to the SCM and waits for the command to finish processing.
+ *
+ * A note on cache maintenance:
+ * Note that any buffers that are expected to be accessed by the secure world
+ * must be flushed before invoking scm_call and invalidated in the cache
+ * immediately after scm_call returns. Cache maintenance on the command and
+ * response buffers is taken care of by scm_call; however, callers are
+ * responsible for any other cached buffers passed over to the secure world.
+ */
 int scm_call(u32 svc_id, u32 cmd_id, const void *cmd_buf, size_t cmd_len,
 		void *resp_buf, size_t resp_len)
 {
@@ -272,6 +337,15 @@ EXPORT_SYMBOL(scm_call);
 				SCM_MASK_IRQS | \
 				(n & 0xf))
 
+/**
+ * scm_call_atomic1() - Send an atomic SCM command with one argument
+ * @svc_id: service identifier
+ * @cmd_id: command identifier
+ * @arg1: first argument
+ *
+ * This shall only be used with commands that are guaranteed to be
+ * uninterruptable, atomic and SMP safe.
+ */
 s32 scm_call_atomic1(u32 svc, u32 cmd, u32 arg1)
 {
 	int context_id;
@@ -295,6 +369,16 @@ s32 scm_call_atomic1(u32 svc, u32 cmd, u32 arg1)
 }
 EXPORT_SYMBOL(scm_call_atomic1);
 
+/**
+ * scm_call_atomic2() - Send an atomic SCM command with two arguments
+ * @svc_id: service identifier
+ * @cmd_id: command identifier
+ * @arg1: first argument
+ * @arg2: second argument
+ *
+ * This shall only be used with commands that are guaranteed to be
+ * uninterruptable, atomic and SMP safe.
+ */
 s32 scm_call_atomic2(u32 svc, u32 cmd, u32 arg1, u32 arg2)
 {
 	int context_id;

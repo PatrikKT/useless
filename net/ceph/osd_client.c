@@ -884,7 +884,8 @@ static void __register_linger_request(struct ceph_osd_client *osdc,
 {
 	dout("__register_linger_request %p\n", req);
 	list_add_tail(&req->r_linger_item, &osdc->req_linger);
-	list_add_tail(&req->r_linger_osd, &req->r_osd->o_linger_requests);
+		list_add_tail(&req->r_linger_osd,
+			      &req->r_osd->o_linger_requests);
 }
 
 static void __unregister_linger_request(struct ceph_osd_client *osdc,
@@ -1003,7 +1004,8 @@ static int __map_request(struct ceph_osd_client *osdc,
 		req->r_osd->o_con.peer_name.num = cpu_to_le64(o);
 		__insert_osd(osdc, req->r_osd);
 
-		ceph_con_open(&req->r_osd->o_con, &osdc->osdmap->osd_addr[o]);
+		ceph_con_open(&req->r_osd->o_con,
+			      &osdc->osdmap->osd_addr[o]);
 	}
 
 	if (req->r_osd) {
@@ -1833,7 +1835,8 @@ int ceph_osdc_init(struct ceph_osd_client *osdc, struct ceph_client *client)
 	if (!osdc->req_mempool)
 		goto out;
 
-	err = ceph_msgpool_init(&osdc->msgpool_op, OSD_OP_FRONT_LEN, 10, true,
+	err = ceph_msgpool_init(&osdc->msgpool_op,
+				OSD_OP_FRONT_LEN, 10, true,
 				"osd_op");
 	if (err < 0)
 		goto out_mempool;
@@ -2132,7 +2135,6 @@ static int get_authorizer(struct ceph_connection *con,
 		if (ret)
 			return ret;
 	}
-
 	*proto = ac->protocol;
 	*buf = o->o_authorizer_buf;
 	*len = o->o_authorizer_buf_len;

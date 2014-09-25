@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -313,7 +313,7 @@ struct vcd_property_vop_timing {
 };
 
 struct vcd_property_vop_timing_constant_delta {
-	u32 constant_delta; 
+	u32 constant_delta; /*In usecs */
 };
 
 struct vcd_property_short_header {

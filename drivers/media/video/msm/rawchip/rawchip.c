@@ -446,7 +446,7 @@ static int rawchip_update_aec_awb_params(struct rawchip_ctrl *raw_dev, void __us
 	if (update_aec_awb_params->init == TRUE)
 	  Yushan_Set_AEC_AWB_Init_Setting(update_aec_awb_params);
 	else
-	  Yushan_Update_AEC_AWB_Params(update_aec_awb_params);
+	Yushan_Update_AEC_AWB_Params(update_aec_awb_params);
 
 	kfree(update_aec_awb_params);
 	return 0;

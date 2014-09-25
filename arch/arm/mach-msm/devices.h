@@ -1,7 +1,7 @@
 /* linux/arch/arm/mach-msm/devices.h
  *
  * Copyright (C) 2008 Google, Inc.
- * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -52,12 +52,6 @@ extern struct platform_device msm_device_uart_dm2;
 extern struct platform_device msm_device_uart_dm3;
 extern struct platform_device msm_device_uart_dm12;
 extern struct platform_device *msm_device_uart_gsbi9;
-#ifdef CONFIG_GSBI4_UARTDM
-extern struct platform_device msm_device_uart_dm4;
-#endif
-#ifdef CONFIG_GSBI5_UARTDM
-extern struct platform_device msm_device_uart_dm5;
-#endif
 extern struct platform_device msm_device_uart_dm6;
 extern struct platform_device msm_device_uart_dm9;
 

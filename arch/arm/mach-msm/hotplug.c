@@ -1,7 +1,7 @@
 /*
  *  Copyright (C) 2002 ARM Ltd.
  *  All Rights Reserved
- *  Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+ *  Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -34,6 +34,8 @@ static DEFINE_PER_CPU_SHARED_ALIGNED(struct msm_hotplug_device,
 
 static inline void cpu_enter_lowpower(void)
 {
+	/* Just flush the cache. Changing the coherency is not yet
+	 * available on msm. */
 	flush_cache_all();
 }
 

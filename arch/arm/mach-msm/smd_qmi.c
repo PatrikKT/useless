@@ -102,6 +102,7 @@ static struct workqueue_struct *qmi_wq;
 
 static int verbose = 0;
 
+/* anyone waiting for a state change waits here */
 static DECLARE_WAIT_QUEUE_HEAD(qmi_wait_queue);
 
 
@@ -728,7 +729,7 @@ static ssize_t qmi_write(struct file *fp, const char __user *buf,
 
 	cmd[len] = 0;
 
-	
+	/* lazy */
 	if (cmd[len-1] == '\n') {
 		cmd[len-1] = 0;
 		len--;

@@ -5,6 +5,8 @@
  *                  & Ralph  Metzler <ralph@convergence.de>
  *                    for convergence integrated media GmbH
  *
+ * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 2.1
@@ -136,9 +138,9 @@ typedef enum {
 } dmx_source_t;
 
 struct dmx_stc {
-	unsigned int num;	/* input : which STC? 0..N */
-	unsigned int base;	/* output: divisor for stc to get 90 kHz clock */
-	__u64 stc;		/* output: stc in 'base'*90 kHz units */
+	unsigned int num; /* input : which STC? 0..N */
+	unsigned int base; /* output: divisor for stc to get 90 kHz clock */
+	__u64 stc; /* output: stc in 'base'*90 kHz units */
 };
 
 

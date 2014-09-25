@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -32,7 +32,7 @@ struct subsys_data {
 	void (*crash_shutdown) (const struct subsys_data *);
 	int (*ramdump) (int, const struct subsys_data *);
 
-	
+
 	struct list_head list;
 	void *notif_handle;
 

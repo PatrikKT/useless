@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2008-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -39,10 +39,6 @@
 #include <linux/types.h>
 #include <linux/switch.h>
 #include <linux/msm_mdp.h>
-
-#ifdef CONFIG_HAS_EARLYSUSPEND
-#include <linux/earlysuspend.h>
-#endif
 
 #include "msm_fb_panel.h"
 #include "mdp.h"
@@ -103,7 +99,7 @@ struct msm_fb_data_type {
 	boolean pan_waiting;
 	struct completion pan_comp;
 
-	
+	/* vsync */
 	boolean use_mdp_vsync;
 	__u32 vsync_gpio;
 	__u32 total_lcd_lines;
@@ -224,7 +220,6 @@ struct msm_fb_data_type {
 	unsigned char *copy_splash_phys;
 	uint32 sec_mapped;
 	uint32 sec_active;
-	
 	struct workqueue_struct *dimming_wq;
 	struct work_struct dimming_work;
 	struct timer_list dimming_update_timer;
@@ -274,4 +269,4 @@ int load_565rle_image(char *filename, bool bf_supported);
 #endif
 
 #define DEFAULT_BRIGHTNESS 143
-#endif 
+#endif /* MSM_FB_H */

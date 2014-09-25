@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2010 Samsung Electronics Co.Ltd
  * Author: Joonyoung Shim <jy0922.shim@samsung.com>
+ * Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute  it and/or modify it
  * under  the terms of  the GNU General  Public License as published by the
@@ -340,7 +341,7 @@ static void mxt_dump_message(struct device *dev,
 }
 
 static int mxt_check_bootloader(struct i2c_client *client,
-				     unsigned int state)
+				unsigned int state)
 {
 	u8 val;
 
@@ -387,7 +388,7 @@ static int mxt_unlock_bootloader(struct i2c_client *client)
 }
 
 static int mxt_fw_write(struct i2c_client *client,
-			     const u8 *data, unsigned int frame_size)
+			const u8 *data, unsigned int frame_size)
 {
 	if (i2c_master_send(client, data, frame_size) != frame_size) {
 		dev_err(&client->dev, "%s: i2c send failed\n", __func__);
@@ -538,7 +539,7 @@ static void mxt_input_report(struct mxt_data *data, int single_id)
 			input_report_abs(input_dev, ABS_MT_POSITION_Y,
 					finger[id].y);
 			input_report_abs(input_dev, ABS_MT_PRESSURE,
-					finger[id].pressure);
+					 finger[id].pressure);
 		} else {
 			finger[id].status = 0;
 		}
@@ -622,7 +623,6 @@ static irqreturn_t mxt_interrupt(int irq, void *dev_id)
 			dev_err(dev, "Failed to read message\n");
 			goto end;
 		}
-
 		reportid = message.reportid;
 
 		/* whether reportid is thing of MXT_TOUCH_MULTI_T9 */
@@ -1040,11 +1040,11 @@ static ssize_t mxt_update_fw_store(struct device *dev,
 		mxt_initialize(data);
 	}
 
-	enable_irq(data->irq);
+		enable_irq(data->irq);
 
-	error = mxt_make_highchg(data);
-	if (error)
-		return error;
+		error = mxt_make_highchg(data);
+		if (error)
+			return error;
 
 	return count;
 }
@@ -1161,9 +1161,9 @@ static int __devinit mxt_probe(struct i2c_client *client,
 		goto err_free_object;
 	}
 
-	error = mxt_make_highchg(data);
-	if (error)
-		goto err_free_irq;
+		error = mxt_make_highchg(data);
+		if (error)
+			goto err_free_irq;
 
 	error = input_register_device(input_dev);
 	if (error)

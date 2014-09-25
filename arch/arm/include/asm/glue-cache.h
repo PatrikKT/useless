@@ -12,6 +12,10 @@
 
 #include <asm/glue.h>
 
+/*
+ *	Cache Model
+ *	===========
+ */
 #undef _CACHE
 #undef MULTI_CACHE
 

@@ -43,12 +43,24 @@
 #define PM8921_MPP_PM_TO_SYS(pm_gpio)	(pm_gpio - 1 + PM8921_MPP_BASE)
 #endif
 
+/* Macros assume PMIC GPIOs and MPPs start at 1 */
+/*
+ * PM8917 has more GPIOs and MPPs than PM8038; therefore, use PM8038 sizes at
+ * all times so that PM8038 vs PM8917 can be chosen at runtime.  This results in
+ * the Linux GPIO address space being contiguous for PM8917 and discontiguous
+ * for PM8038.
+ */
 #define PM8038_GPIO_BASE		NR_GPIO_IRQS
 #define PM8038_GPIO_PM_TO_SYS(pm_gpio)	(pm_gpio - 1 + PM8038_GPIO_BASE)
 #define PM8038_MPP_BASE			(PM8038_GPIO_BASE + PM8038_NR_GPIOS)
 #define PM8038_MPP_PM_TO_SYS(pm_gpio)	(pm_gpio - 1 + PM8038_MPP_BASE)
 #define PM8038_IRQ_BASE			(NR_MSM_IRQS + NR_GPIO_IRQS)
 
+/*
+ * TODO: When physical 8930/PM8038 hardware becomes
+ * available, replace this block with 8930/pm8038 regulator
+ * declarations.
+ */
 #ifndef MSM8930_PHASE_2
 extern struct pm8xxx_regulator_platform_data
 	msm_pm8921_regulator_pdata[] __devinitdata;
@@ -86,7 +98,7 @@ extern struct rpm_regulator_platform_data
 enum {
 	GPIO_EXPANDER_IRQ_BASE = (PM8038_IRQ_BASE + PM8038_NR_IRQS),
 	GPIO_EXPANDER_GPIO_BASE = (PM8038_MPP_BASE + PM8038_NR_MPPS),
-	
+	/* CAM Expander */
 	GPIO_CAM_EXPANDER_BASE = GPIO_EXPANDER_GPIO_BASE,
 	GPIO_CAM_GP_STROBE_READY = GPIO_CAM_EXPANDER_BASE,
 	GPIO_CAM_GP_AFBUSY,
@@ -113,6 +125,11 @@ void msm8930_init_fb(void);
 void msm8930_init_pmic(void);
 extern void msm8930_add_vidc_device(void);
 
+/*
+ * TODO: When physical 8930/PM8038 hardware becomes
+ * available, remove this block or add the config
+ * option.
+ */
 #ifndef MSM8930_PHASE_2
 void msm8960_init_pmic(void);
 void msm8960_pm8921_gpio_mpp_init(void);

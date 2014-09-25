@@ -6,7 +6,7 @@
  *
  * Copyright (C) 1998,2001-2005 Pavel Machek <pavel@ucw.cz>
  * Copyright (C) 2006 Rafael J. Wysocki <rjw@sisk.pl>
- * Copyright (C) 2010 Bojan Smojver <bojan@rexursive.com>
+ * Copyright (C) 2010-2012 Bojan Smojver <bojan@rexursive.com>
  *
  * This file is released under the GPLv2.
  *
@@ -368,11 +368,15 @@ static int swap_write_page(struct swap_map_handle *handle, void *buf,
 		handle->cur_swap = offset;
 		handle->k = 0;
 	}
-	if (bio_chain && low_free_pages() <= handle->reqd_free_pages) {
-		error = hib_wait_on_bio_chain(bio_chain);
-		if (error)
-			goto out;
-		handle->reqd_free_pages = reqd_free_pages();
+		if (bio_chain && low_free_pages() <= handle->reqd_free_pages) {
+			error = hib_wait_on_bio_chain(bio_chain);
+			if (error)
+				goto out;
+			/*
+			 * Recalculate the number of required free pages, to
+			 * make sure we never take more than half.
+			 */
+			handle->reqd_free_pages = reqd_free_pages();
 	}
  out:
 	return error;
@@ -631,12 +635,6 @@ static int save_image_lzo(struct swap_map_handle *handle,
 	}
 
 	/*
-	 * Adjust number of free pages after all allocations have been done.
-	 * We don't want to run out of pages when writing.
-	 */
-	handle->reqd_free_pages = reqd_free_pages();
-
-	/*
 	 * Start the CRC32 thread.
 	 */
 	init_waitqueue_head(&crc->go);
@@ -656,6 +654,12 @@ static int save_image_lzo(struct swap_map_handle *handle,
 		ret = -ENOMEM;
 		goto out_clean;
 	}
+
+	/*
+	 * Adjust the number of required free pages after all allocations have
+	 * been done. We don't want to run out of pages when writing.
+	 */
+	handle->reqd_free_pages = reqd_free_pages();
 
 	printk(KERN_INFO
 		"PM: Using %u thread(s) for compression.\n"
@@ -1146,7 +1150,7 @@ static int load_image_lzo(struct swap_map_handle *handle,
 	/*
 	 * Adjust number of pages for read buffering, in case we are short.
 	 */
-	read_pages = (nr_free_pages() - snapshot_get_image_size()) >> 1;
+		read_pages = (nr_free_pages() - snapshot_get_image_size()) >> 1;
 	read_pages = clamp_val(read_pages, LZO_CMP_PAGES, LZO_READ_PAGES);
 
 	for (i = 0; i < read_pages; i++) {

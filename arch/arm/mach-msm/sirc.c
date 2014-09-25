@@ -1,8 +1,11 @@
-/* Copyright (c) 2008-2009, Code Aurora Forum. All rights reserved.
+/* linux/arch/arm/mach-msm/irq.c
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 and
- * only version 2 as published by the Free Software Foundation.
+ * Copyright (c) 2009-2011 The Linux Foundation. All rights reserved.
+ * Copyright (C) 2009 Google, Inc.
+ *
+ * This software is licensed under the terms of the GNU General Public
+ * License version 2, as published by the Free Software Foundation, and
+ * may be copied, distributed, and modified under those terms.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -142,12 +145,12 @@ static void sirc_irq_handler(unsigned int irq, struct irq_desc *desc)
 }
 
 static struct irq_chip sirc_irq_chip = {
-	.name          = "sirc",
-	.irq_ack       = sirc_irq_ack,
-	.irq_mask      = sirc_irq_mask,
-	.irq_unmask    = sirc_irq_unmask,
-	.irq_set_wake  = sirc_irq_set_wake,
-	.irq_set_type  = sirc_irq_set_type,
+	.name		= "sirc",
+	.irq_ack	= sirc_irq_ack,
+	.irq_mask	= sirc_irq_mask,
+	.irq_unmask	= sirc_irq_unmask,
+	.irq_set_wake	= sirc_irq_set_wake,
+	.irq_set_type	= sirc_irq_set_type,
 };
 
 void __init msm_init_sirc(void)

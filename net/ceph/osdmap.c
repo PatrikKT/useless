@@ -502,7 +502,7 @@ static int __decode_pool_names(void **p, void *end, struct ceph_osdmap *map)
 			if (pi->name) {
 				memcpy(pi->name, *p, len);
 				pi->name[len] = '\0';
-				dout("  name is %s\n", pi->name);
+			dout("  name is %s\n", pi->name);
 			}
 		}
 		*p += len;

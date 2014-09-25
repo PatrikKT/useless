@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -38,10 +38,10 @@
 #include <mach/scm.h>
 #include <mach/msm_watchdog.h>
 #include <mach/board_htc.h>
+#include <mach/htc_restart_handler.h>
 
 #include "smd_private.h"
 #include "timer.h"
-#include <mach/htc_restart_handler.h>
 
 #define WDT0_RST	0x38
 #define WDT0_EN		0x40
@@ -76,12 +76,15 @@ static int panic_prep_restart(struct notifier_block *this,
 	in_panic = 1;
 	return NOTIFY_DONE;
 }
+
 static struct notifier_block panic_blk = {
 	.notifier_call	= panic_prep_restart,
 };
+
 #ifdef CONFIG_MSM_DLOAD_MODE
 static void *dload_mode_addr;
 
+/* Download mode master kill-switch */
 static int dload_set(const char *val, struct kernel_param *kp);
 static int download_mode = 1;
 module_param_call(download_mode, dload_set, param_get_int,
@@ -227,20 +230,20 @@ static int notify_efs_sync_call
 	switch (code) {
 	case SYS_RESTART:
 	case SYS_POWER_OFF:
-		
+
 		if (board_mfg_mode() <= MFG_MODE_MINI) {
 			set_modem_efs_sync();
 			check_modem_efs_sync_timeout(10);
-		}
+			}
 
-		break;
+			break;
 	}
 
 	return NOTIFY_DONE;
 }
 
 static struct notifier_block notify_efs_sync_notifier = {
-	.notifier_call = notify_efs_sync_call,
+   .notifier_call = notify_efs_sync_call,
 };
 
 static void __msm_power_off(int lower_pshold)
@@ -261,7 +264,7 @@ static void __msm_power_off(int lower_pshold)
 
 static void msm_power_off(void)
 {
-	
+	/* MSM initiated power off, lower ps_hold */
 	__msm_power_off(1);
 }
 
@@ -272,11 +275,15 @@ static void cpu_power_off(void *data)
 	pr_err("PMIC Initiated shutdown %s cpu=%d\n", __func__,
 						smp_processor_id());
 	if (smp_processor_id() == 0) {
+		/*
+		 * PMIC initiated power off, do not lower ps_hold, pmic will
+		 * shut msm down
+		 */
 		__msm_power_off(0);
 
 		pet_watchdog();
 		pr_err("Calling scm to disable arbiter\n");
-		
+		/* call secure manager to disable arbiter and never return */
 		rc = scm_call_atomic1(SCM_SVC_PWR,
 						SCM_IO_DISABLE_PMIC_ARBITER, 1);
 
@@ -307,18 +314,17 @@ void msm_restart(char mode, const char *cmd)
 	unsigned long oem_code = 0;
 
 #ifdef CONFIG_MSM_DLOAD_MODE
-
-	
+	/* This looks like a normal reboot at this point. */
 	set_dload_mode(0);
 
-	
+	/* Write download mode flags if we're panic'ing */
 	set_dload_mode(in_panic);
 
-	
+
 	if (restart_mode == RESTART_DLOAD)
 		set_dload_mode(1);
 
-	
+	/* Kill download mode if master-kill switch is set */
 	if (!download_mode)
 		set_dload_mode(0);
 #endif
@@ -332,7 +338,7 @@ void msm_restart(char mode, const char *cmd)
 	pr_info("[K] %s: restart by command: [%s]\r\n", __func__, (cmd) ? cmd : "");
 
 	if (in_panic) {
-		
+
 	} else if (!cmd) {
 		set_restart_action(RESTART_REASON_REBOOT, NULL);
 	} else if (!strncmp(cmd, "bootloader", 10)) {
@@ -347,7 +353,6 @@ void msm_restart(char mode, const char *cmd)
 	} else if (!strncmp(cmd, "force-hard", 10) ||
 			(RESTART_MODE_LEGECY < mode && mode < RESTART_MODE_MAX)
 			) {
-		
 		if (mode == RESTART_MODE_MODEM_USER_INVOKED)
 			set_restart_action(RESTART_REASON_REBOOT, NULL);
 		else if (mode == RESTART_MODE_ERASE_EFS)
@@ -355,7 +360,6 @@ void msm_restart(char mode, const char *cmd)
 		else {
 			set_restart_action(RESTART_REASON_RAMDUMP, cmd);
 		}
-
 	} else {
 		set_restart_action(RESTART_REASON_REBOOT, NULL);
 	}
@@ -366,7 +370,7 @@ void msm_restart(char mode, const char *cmd)
 	__raw_writel(0, msm_tmr0_base + WDT0_EN);
 	if (!(machine_is_msm8x60_fusion() || machine_is_msm8x60_fusn_ffa())) {
 		mb();
-		__raw_writel(0, PSHOLD_CTL_SU); 
+		__raw_writel(0, PSHOLD_CTL_SU); /* Actually reset the chip */
 		mdelay(5000);
 		pr_notice("[K] PS_HOLD didn't work, falling back to watchdog\n");
 	}
@@ -390,12 +394,6 @@ static int __init msm_restart_init(void)
 
 	atomic_notifier_chain_register(&panic_notifier_list, &panic_blk);
 	register_reboot_notifier(&notify_efs_sync_notifier);
-
-#ifdef CONFIG_MSM_DLOAD_MODE
-	dload_mode_addr = MSM_IMEM_BASE + DLOAD_MODE_ADDR;
-
-	
-	set_dload_mode(1);
 #endif
 	msm_tmr0_base = msm_timer_get_timer0_base();
 	pm_power_off = msm_power_off;

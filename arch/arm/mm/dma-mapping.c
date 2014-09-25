@@ -32,8 +32,6 @@
 #include <asm/system_info.h>
 #include <asm/dma-contiguous.h>
 
-#include <htc_debug/stability/htc_report_meminfo.h>
-
 #include "mm.h"
 
 static u64 get_coherent_dma_mask(struct device *dev)
@@ -43,6 +41,10 @@ static u64 get_coherent_dma_mask(struct device *dev)
 	if (dev) {
 		mask = dev->coherent_dma_mask;
 
+		/*
+		 * Sanity check the DMA mask - it must be non-zero, and
+		 * must be able to be satisfied by a DMA allocation.
+		 */
 		if (mask == 0) {
 			dev_warn(dev, "coherent DMA mask is unset\n");
 			return 0;
@@ -68,6 +70,10 @@ static void __dma_clear_buffer(struct page *page, size_t size)
 	outer_flush_range(__pa(ptr), __pa(ptr) + size);
 }
 
+/*
+ * Allocate a DMA buffer for 'dev' of size 'size' using the
+ * specified gfp mask.  Note that 'size' must be page aligned.
+ */
 static struct page *__dma_alloc_buffer(struct device *dev, size_t size, gfp_t gfp)
 {
 	unsigned long order = get_order(size);
@@ -77,6 +83,9 @@ static struct page *__dma_alloc_buffer(struct device *dev, size_t size, gfp_t gf
 	if (!page)
 		return NULL;
 
+	/*
+	 * Now split the huge page and free the excess pages
+	 */
 	split_page(page, order);
 	for (p = page + (size >> PAGE_SHIFT), e = page + (1 << order); p < e; p++)
 		__free_page(p);
@@ -86,6 +95,9 @@ static struct page *__dma_alloc_buffer(struct device *dev, size_t size, gfp_t gf
 	return page;
 }
 
+/*
+ * Free a DMA buffer.  'size' must be page aligned.
+ */
 static void __dma_free_buffer(struct page *page, size_t size)
 {
 	struct page *e = page + (size >> PAGE_SHIFT);
@@ -264,6 +276,9 @@ void __init dma_contiguous_remap(void)
 		map.length = end - start;
 		map.type = MT_MEMORY_DMA_READY;
 
+		/*
+		 * Clear previous low-memory mapping
+		 */
 		for (addr = __phys_to_virt(start); addr < __phys_to_virt(end);
 		     addr += PGDIR_SIZE)
 			pmd_clear(pmd_off_k(addr));
@@ -422,6 +437,11 @@ static void *__alloc_from_pool(struct device *dev, size_t size,
 		return NULL;
 	}
 
+	/*
+	 * Align the region allocation - allocations from pool are rather
+	 * small, so align them to their order in pages, minimum is a page
+	 * size. This helps reduce fragmentation of the DMA space.
+	 */
 	align = PAGE_SIZE << get_order(size);
 	c = arm_vmregion_alloc(&coherent_head, align, size, 0, caller);
 	if (c) {
@@ -482,7 +502,7 @@ static void __free_from_contiguous(struct device *dev, struct page *page,
 
 #define nommu() 0
 
-#else	
+#else	/* !CONFIG_MMU */
 
 #define nommu() 1
 
@@ -493,7 +513,7 @@ static void __free_from_contiguous(struct device *dev, struct page *page,
 #define __free_from_contiguous(dev, page, size)			do { } while (0)
 #define __dma_free_remap(cpu_addr, size)			do { } while (0)
 
-#endif	
+#endif	/* CONFIG_MMU */
 
 static void *__alloc_simple_buffer(struct device *dev, size_t size, gfp_t gfp,
 				   struct page **ret_page)
@@ -531,6 +551,13 @@ static void *__dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
 	if (mask < 0xffffffffULL)
 		gfp |= GFP_DMA;
 
+	/*
+	 * Following is a work-around (a.k.a. hack) to prevent pages
+	 * with __GFP_COMP being passed to split_page() which cannot
+	 * handle them.  The real problem is that this flag probably
+	 * should be 0 on ARM as it is not supported on this
+	 * platform; see CONFIG_HUGETLBFS.
+	 */
 	gfp &= ~(__GFP_COMP);
 
 	*handle = ~0;
@@ -722,7 +749,7 @@ void ___dma_page_cpu_to_dev(struct page *page, unsigned long off,
 	} else {
 		outer_clean_range(paddr, paddr + size);
 	}
-	
+	/* FIXME: non-speculating: flush on bidirectional mappings? */
 }
 EXPORT_SYMBOL(___dma_page_cpu_to_dev);
 
@@ -731,13 +758,16 @@ void ___dma_page_dev_to_cpu(struct page *page, unsigned long off,
 {
 	unsigned long paddr = page_to_phys(page) + off;
 
-	
-	
+	/* FIXME: non-speculating: not required */
+	/* don't bother invalidating if DMA to device */
 	if (dir != DMA_TO_DEVICE)
 		outer_inv_range(paddr, paddr + size);
 
 	dma_cache_maint_page(page, off, size, dir, dmac_unmap_area);
 
+	/*
+	 * Mark the D-cache clean for this page to avoid extra flushing.
+	 */
 	if (dir != DMA_TO_DEVICE && off == 0 && size >= PAGE_SIZE)
 		set_bit(PG_dcache_clean, &page->flags);
 }
@@ -818,6 +848,12 @@ void dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
 }
 EXPORT_SYMBOL(dma_sync_sg_for_device);
 
+/*
+ * Return whether the given device DMA address mask can be supported
+ * properly.  For example, if your device can only drive the low 24-bits
+ * during bus mastering, then you would pass 0x00ffffff as the mask
+ * to this function.
+ */
 int dma_supported(struct device *dev, u64 mask)
 {
 	if (mask < (u64)arm_dma_limit)

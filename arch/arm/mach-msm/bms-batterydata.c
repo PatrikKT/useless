@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -47,7 +47,7 @@ static struct sf_lut palladium_1500_pc_sf = {
 static struct sf_lut palladium_1500_rbatt_sf = {
 	.rows		= 19,
 	.cols		= 5,
-	
+	/* row_entries are temperature */
 	.row_entries	= {-20, 0, 20, 40, 65},
 	.percent	= {100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50,
 				45, 40, 35, 30, 25, 20, 15, 10

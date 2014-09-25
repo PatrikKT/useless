@@ -30,6 +30,7 @@ struct msm_priv {
 	int				dcvs_core_id;
 };
 
+/* reference to be used in idle and freq callbacks */
 static struct msm_priv *the_msm_priv;
 
 #if 0
@@ -52,6 +53,9 @@ static int msm_idle_enable(int type_core_num,
 	return 0;
 }
 
+/* Set the requested frequency if it is within 5MHz (delta) of a
+ * supported frequency.
+ */
 static int msm_set_freq(int core_num, unsigned int freq)
 {
 	int i, delta = 5000000;
@@ -59,7 +63,7 @@ static int msm_set_freq(int core_num, unsigned int freq)
 	struct kgsl_device *device = priv->device;
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
 
-	
+	/* msm_dcvs manager uses frequencies in kHz */
 	freq *= 1000;
 	for (i = 0; i < pwr->num_pwrlevels; i++)
 		if (abs(pwr->pwrlevels[i].gpu_freq - freq) < delta)
@@ -75,7 +79,7 @@ static int msm_set_freq(int core_num, unsigned int freq)
 	}
 	mutex_unlock(&device->mutex);
 
-	
+	/* return current frequency in kHz */
 	return priv->cur_freq / 1000;
 }
 
@@ -86,7 +90,7 @@ static int msm_set_min_freq(int core_num, unsigned int freq)
 	struct kgsl_device *device = priv->device;
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
 
-	
+	/* msm_dcvs manager uses frequencies in kHz */
 	freq *= 1000;
 	for (i = 0; i < pwr->num_pwrlevels; i++)
 		if (abs(pwr->pwrlevels[i].gpu_freq - freq) < delta)
@@ -104,7 +108,7 @@ static int msm_set_min_freq(int core_num, unsigned int freq)
 	priv->cur_freq = pwr->pwrlevels[pwr->active_pwrlevel].gpu_freq;
 	mutex_unlock(&device->mutex);
 
-	
+	/* return current frequency in kHz */
 	return priv->cur_freq / 1000;
 }
 
@@ -112,7 +116,7 @@ static unsigned int msm_get_freq(int core_num)
 {
 	struct msm_priv *priv = the_msm_priv;
 
-	
+	/* return current frequency in kHz */
 	return priv->cur_freq / 1000;
 }
 #endif
@@ -202,7 +206,7 @@ static int msm_init(struct kgsl_device *device,
 		priv->core_info = pdata->core_info;
 		tbl = priv->core_info->freq_tbl;
 		priv->floor_level = pwr->num_pwrlevels - 1;
-		
+		/* Fill in frequency table from low to high, reversing order. */
 		low_level = pwr->num_pwrlevels - KGSL_PWRLEVEL_LAST_OFFSET;
 		for (i = 0; i <= low_level; i++)
 			tbl[i].freq =

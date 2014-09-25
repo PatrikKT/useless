@@ -1,8 +1,8 @@
-/* Copyright (c) 2010 Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2011 The Linux Foundation. All rights reserved.
  *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,9 +17,8 @@
 /* MSM ACPU Interrupt Numbers */
 
 /* 0-15:  STI/SGI (software triggered/generated interrupts)
- * 16-31: PPI (private peripheral interrupts)
- * 32+:   SPI (shared peripheral interrupts)
- */
+   16-31: PPI (private peripheral interrupts)
+   32+:   SPI (shared peripheral interrupts) */
 
 #define GIC_PPI_START 16
 #define GIC_SPI_START 32
@@ -187,9 +186,9 @@
 #define TSSC_SAMPLE_IRQ				(GIC_SPI_START + 144)
 #define TSSC_PENUP_IRQ				(GIC_SPI_START + 145)
 #define INT_UART1DM_IRQ				(GIC_SPI_START + 146)
-#define GSBI1_QUP_IRQ				(GIC_SPI_START + 147)
+#define GSBI1_QUP_IRQ		         	(GIC_SPI_START + 147)
 #define INT_UART2DM_IRQ				(GIC_SPI_START + 148)
-#define GSBI2_QUP_IRQ				(GIC_SPI_START + 149)
+#define GSBI2_QUP_IRQ			        (GIC_SPI_START + 149)
 #define INT_UART3DM_IRQ				(GIC_SPI_START + 150)
 #define GSBI3_QUP_IRQ				(GIC_SPI_START + 151)
 #define INT_UART4DM_IRQ				(GIC_SPI_START + 152)
@@ -239,8 +238,8 @@
 #define GSBI12_QUP_IRQ				(GIC_SPI_START + 196)
 
 /*SPI 197 to 209 arent used in 8x60*/
-#define SMMU_GFX2D1_CB_SC_SECURE_IRQ            (GIC_SPI_START + 210)
-#define SMMU_GFX2D1_CB_SC_NON_SECURE_IRQ        (GIC_SPI_START + 211)
+#define SMMU_GFX2D1_CB_SC_SECURE_IRQ		(GIC_SPI_START + 210)
+#define SMMU_GFX2D1_CB_SC_NON_SECURE_IRQ	(GIC_SPI_START + 211)
 
 /*SPI 212 to 216 arent used in 8x60*/
 #define SMPSS_SPARE_1				(GIC_SPI_START + 217)

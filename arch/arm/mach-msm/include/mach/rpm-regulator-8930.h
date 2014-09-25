@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -14,11 +14,30 @@
 #ifndef __ARCH_ARM_MACH_MSM_INCLUDE_MACH_RPM_REGULATOR_8930_H
 #define __ARCH_ARM_MACH_MSM_INCLUDE_MACH_RPM_REGULATOR_8930_H
 
+/* Pin control input signals. */
 #define RPM_VREG_PIN_CTRL_PM8038_D1	0x01
 #define RPM_VREG_PIN_CTRL_PM8038_A0	0x02
 #define RPM_VREG_PIN_CTRL_PM8038_A1	0x04
 #define RPM_VREG_PIN_CTRL_PM8038_A2	0x08
 
+/**
+ * enum rpm_vreg_pin_fn_8930 - RPM regulator pin function choices
+ * %RPM_VREG_PIN_FN_8930_DONT_CARE:	do not care about pin control state of
+ *					the regulator; allow another master
+ *					processor to specify pin control
+ * %RPM_VREG_PIN_FN_8930_ENABLE:	pin control switches between disable and
+ *					enable
+ * %RPM_VREG_PIN_FN_8930_MODE:		pin control switches between LPM and HPM
+ * %RPM_VREG_PIN_FN_8930_SLEEP_B:	regulator is forced into LPM when
+ *					sleep_b signal is asserted
+ * %RPM_VREG_PIN_FN_8930_NONE:		do not use pin control for the regulator
+ *					and do not allow another master to
+ *					request pin control
+ *
+ * The pin function specified in platform data corresponds to the active state
+ * pin function value.  Pin function will be NONE until a consumer requests
+ * pin control to be enabled.
+ */
 enum rpm_vreg_pin_fn_8930 {
 	RPM_VREG_PIN_FN_8930_DONT_CARE,
 	RPM_VREG_PIN_FN_8930_ENABLE,
@@ -27,15 +46,39 @@ enum rpm_vreg_pin_fn_8930 {
 	RPM_VREG_PIN_FN_8930_NONE,
 };
 
+/**
+ * enum rpm_vreg_force_mode_8930 - RPM regulator force mode choices
+ * %RPM_VREG_FORCE_MODE_8930_PIN_CTRL:	allow pin control usage
+ * %RPM_VREG_FORCE_MODE_8930_NONE:	do not force any mode
+ * %RPM_VREG_FORCE_MODE_8930_LPM:	force into low power mode
+ * %RPM_VREG_FORCE_MODE_8930_AUTO:	allow regulator to automatically select
+ *					its own mode based on realtime current
+ *					draw (only available for SMPS
+ *					regulators)
+ * %RPM_VREG_FORCE_MODE_8930_HPM:	force into high power mode
+ * %RPM_VREG_FORCE_MODE_8930_BYPASS:	set regulator to use bypass mode, i.e.
+ *					to act as a switch and not regulate
+ *					(only available for LDO regulators)
+ *
+ * Force mode is used to override aggregation with other masters and to set
+ * special operating modes.
+ */
 enum rpm_vreg_force_mode_8930 {
 	RPM_VREG_FORCE_MODE_8930_PIN_CTRL = 0,
 	RPM_VREG_FORCE_MODE_8930_NONE = 0,
 	RPM_VREG_FORCE_MODE_8930_LPM,
-	RPM_VREG_FORCE_MODE_8930_AUTO,		
+	RPM_VREG_FORCE_MODE_8930_AUTO,		/* SMPS only */
 	RPM_VREG_FORCE_MODE_8930_HPM,
-	RPM_VREG_FORCE_MODE_8930_BYPASS,	
+	RPM_VREG_FORCE_MODE_8930_BYPASS,	/* LDO only */
 };
 
+/**
+ * enum rpm_vreg_power_mode_8930 - power mode for SMPS regulators
+ * %RPM_VREG_POWER_MODE_8930_HYSTERETIC: Use hysteretic mode for HPM and when
+ *					 usage goes high in AUTO
+ * %RPM_VREG_POWER_MODE_8930_PWM:	 Use PWM mode for HPM and when usage
+ *					 goes high in AUTO
+ */
 enum rpm_vreg_power_mode_8930 {
 	RPM_VREG_POWER_MODE_8930_HYSTERETIC,
 	RPM_VREG_POWER_MODE_8930_PWM,
@@ -80,7 +123,7 @@ enum rpm_vreg_id_8930 {
 	RPM_VREG_ID_PM8038_VDD_DIG_CORNER,
 	RPM_VREG_ID_PM8038_MAX_REAL = RPM_VREG_ID_PM8038_VDD_DIG_CORNER,
 
-	
+	/* The following are IDs for regulator devices to enable pin control. */
 	RPM_VREG_ID_PM8038_L2_PC,
 	RPM_VREG_ID_PM8038_L3_PC,
 	RPM_VREG_ID_PM8038_L4_PC,

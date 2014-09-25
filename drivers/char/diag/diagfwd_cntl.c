@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -17,6 +17,7 @@
 #include "diagchar.h"
 #include "diagfwd.h"
 #include "diagfwd_cntl.h"
+/* tracks which peripheral is undergoing SSR */
 static uint16_t reg_dirty;
 #define HDR_SIZ 8
 
@@ -120,7 +121,7 @@ static void diag_smd_cntl_send_req(int proc_num)
 {
 	int data_len = 0, type = -1, count_bytes = 0, j, r, flag = 0;
 	struct bindpkt_params_per_process *pkt_params =
-		 kzalloc(sizeof(struct bindpkt_params_per_process), GFP_KERNEL);
+		kzalloc(sizeof(struct bindpkt_params_per_process), GFP_KERNEL);
 	struct diag_ctrl_msg *msg;
 	struct cmd_code_range *range;
 	struct bindpkt_params *temp;
@@ -251,7 +252,7 @@ static int diag_smd_cntl_probe(struct platform_device *pdev)
 {
 	int r = 0;
 
-	
+	/* open control ports only on 8960 & newer targets */
 	if (chk_apps_only()) {
 		if (pdev->id == SMD_APPS_MODEM)
 			r = smd_open("DIAG_CNTL", &driver->ch_cntl, driver,
@@ -334,12 +335,12 @@ void diagfwd_cntl_init(void)
 
 	return;
 err:
-		pr_err("diag: Could not initialize diag buffers");
+	pr_err("diag: Could not initialize diag buffers");
 		kfree(driver->buf_in_cntl);
 		kfree(driver->buf_in_lpass_cntl);
 		kfree(driver->buf_in_wcnss_cntl);
-		if (driver->diag_cntl_wq)
-			destroy_workqueue(driver->diag_cntl_wq);
+	if (driver->diag_cntl_wq)
+		destroy_workqueue(driver->diag_cntl_wq);
 }
 
 void diagfwd_cntl_exit(void)
@@ -351,6 +352,7 @@ void diagfwd_cntl_exit(void)
 	driver->chlpass_cntl = 0;
 	driver->ch_wcnss_cntl = 0;
 	destroy_workqueue(driver->diag_cntl_wq);
+
 	platform_driver_unregister(&msm_smd_ch1_cntl_driver);
 	platform_driver_unregister(&diag_smd_lite_cntl_driver);
 

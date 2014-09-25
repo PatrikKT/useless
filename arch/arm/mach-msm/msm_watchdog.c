@@ -60,6 +60,11 @@ static unsigned long long last_pet;
 static bool has_vic;
 static atomic_t watchdog_bark_counter = ATOMIC_INIT(0);
 
+/*
+ * On the kernel command line specify
+ * msm_watchdog.enable=1 to enable the watchdog
+ * By default watchdog is turned on
+ */
 static int enable = 1;
 module_param(enable, int, 0);
 
@@ -69,11 +74,20 @@ static int wdog_enable_set(const char *val, struct kernel_param *kp);
 module_param_call(runtime_disable, wdog_enable_set, param_get_int,
 			&runtime_disable, 0644);
 
+/*
+ * On the kernel command line specify msm_watchdog.appsbark=1 to handle
+ * watchdog barks in Linux. By default barks are processed by the secure side.
+ */
 static int appsbark;
 module_param(appsbark, int, 0);
 
 static int appsbark_fiq;
 
+/*
+ * Use /sys/module/msm_watchdog/parameters/print_all_stacks
+ * to control whether stacks of all running
+ * processes are printed when a wdog bark is received.
+ */
 static int print_all_stacks = 1;
 module_param(print_all_stacks, int,  S_IRUGO | S_IWUSR);
 
@@ -391,16 +405,16 @@ static irqreturn_t wdog_bark_handler(int irq, void *dev_id)
 		return IRQ_HANDLED;
 
 	nanosec_rem = do_div(t, 1000000000);
-	printk(KERN_INFO "[K] Watchdog bark! Now = %lu.%06lu\n", (unsigned long) t,
+	printk(KERN_INFO "Watchdog bark! Now = %lu.%06lu\n", (unsigned long) t,
 		nanosec_rem / 1000);
 
 	nanosec_rem = do_div(last_pet, 1000000000);
-	printk(KERN_INFO "[K] Watchdog last pet at %lu.%06lu\n", (unsigned long)
+	printk(KERN_INFO "Watchdog last pet at %lu.%06lu\n", (unsigned long)
 		last_pet, nanosec_rem / 1000);
 
 	if (print_all_stacks) {
 
-		
+		/* Suspend wdog until all stacks are printed */
 		msm_watchdog_suspend(NULL);
 
 		

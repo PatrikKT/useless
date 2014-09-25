@@ -314,7 +314,7 @@ static void xiic_fill_tx_fifo(struct xiic_i2c *i2c)
 
 			xiic_setreg16(i2c, XIIC_DTR_REG_OFFSET, data);
 		} else
-			xiic_setreg8(i2c, XIIC_DTR_REG_OFFSET, data);
+		xiic_setreg8(i2c, XIIC_DTR_REG_OFFSET, data);
 	}
 }
 

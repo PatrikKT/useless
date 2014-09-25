@@ -172,7 +172,7 @@ static void __init dmi_save_uuid(const struct dmi_header *dm, int slot, int inde
 	if (!s)
 		return;
 
-	sprintf(s, "%pUB", d);
+		sprintf(s, "%pUB", d);
 
         dmi_ident[slot] = s;
 }
@@ -462,7 +462,7 @@ void __init dmi_scan_machine(void)
 			goto error;
 
 		for (q = p; q < p + 0x10000; q += 16) {
-			rc = dmi_present(q);
+				rc = dmi_present(q);
 			if (!rc) {
 				dmi_available = 1;
 				dmi_iounmap(p, 0x10000);

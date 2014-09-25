@@ -167,12 +167,11 @@ struct sx150x_platform_data msm8930_sx150x_data[] = {
 #define MSM_PMEM_ADSP_SIZE         0x7800000
 #define MSM_PMEM_AUDIO_SIZE        0x4CF000
 #ifdef CONFIG_FB_MSM_HDMI_AS_PRIMARY
-#define MSM_PMEM_SIZE 0x4000000 
+#define MSM_PMEM_SIZE 0x4000000 /* 64 Mbytes */
 #else
-#define MSM_PMEM_SIZE 0x2800000 
+#define MSM_PMEM_SIZE 0x2800000 /* 40 Mbytes */
 #endif
-
-#define MSM_LIQUID_PMEM_SIZE 0x4000000 
+#define MSM_LIQUID_PMEM_SIZE 0x4000000 /* 64 Mbytes */
 
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
 #define HOLE_SIZE	0x20000
@@ -180,15 +179,15 @@ struct sx150x_platform_data msm8930_sx150x_data[] = {
 #ifdef CONFIG_MSM_IOMMU
 #define MSM_ION_MM_SIZE            0x3800000 
 #define MSM_ION_SF_SIZE            0x0
-#define MSM_ION_QSECOM_SIZE	0x780000 
+#define MSM_ION_QSECOM_SIZE	0x780000 /* (7.5MB) */
 #define MSM_ION_HEAP_NUM	7
 #else
 #define MSM_ION_SF_SIZE		MSM_PMEM_SIZE
 #define MSM_ION_MM_SIZE		MSM_PMEM_ADSP_SIZE
-#define MSM_ION_QSECOM_SIZE	0x600000 
+#define MSM_ION_QSECOM_SIZE	0x600000 /* (6MB) */
 #define MSM_ION_HEAP_NUM	8
 #endif
-#define MSM_ION_MM_FW_SIZE	(0x200000 - HOLE_SIZE) 
+#define MSM_ION_MM_FW_SIZE	(0x200000 - HOLE_SIZE) /* 2MB - 128Kb */
 #define MSM_ION_MFC_SIZE	SZ_8K
 #define MSM_ION_AUDIO_SIZE	MSM_PMEM_AUDIO_SIZE
 
@@ -284,8 +283,8 @@ static struct platform_device msm8930_android_pmem_audio_device = {
 	.id = 4,
 	.dev = { .platform_data = &android_pmem_audio_pdata },
 };
-#endif 
-#endif 
+#endif /* CONFIG_MSM_MULTIMEDIA_USE_ION */
+#endif /* CONFIG_ANDROID_PMEM */
 
 struct fmem_platform_data msm8930_fmem_pdata = {
 };
@@ -335,8 +334,8 @@ static void __init size_pmem_devices(void)
 	android_pmem_adsp_pdata.size = pmem_adsp_size;
 	android_pmem_pdata.size = pmem_size;
 	android_pmem_audio_pdata.size = MSM_PMEM_AUDIO_SIZE;
-#endif 
-#endif 
+#endif /*CONFIG_MSM_MULTIMEDIA_USE_ION*/
+#endif /*CONFIG_ANDROID_PMEM*/
 }
 
 #ifdef CONFIG_ANDROID_PMEM
@@ -345,8 +344,8 @@ static void __init reserve_memory_for(struct android_pmem_platform_data *p)
 {
 	msm8930_reserve_table[p->memory_type].size += p->size;
 }
-#endif 
-#endif 
+#endif /*CONFIG_MSM_MULTIMEDIA_USE_ION*/
+#endif /*CONFIG_ANDROID_PMEM*/
 
 static void __init reserve_pmem_memory(void)
 {
@@ -355,9 +354,9 @@ static void __init reserve_pmem_memory(void)
 	reserve_memory_for(&android_pmem_adsp_pdata);
 	reserve_memory_for(&android_pmem_pdata);
 	reserve_memory_for(&android_pmem_audio_pdata);
-#endif 
+#endif /*CONFIG_MSM_MULTIMEDIA_USE_ION*/
 	msm8930_reserve_table[MEMTYPE_EBI1].size += pmem_kernel_ebi1_size;
-#endif 
+#endif /*CONFIG_ANDROID_PMEM*/
 }
 
 static int msm8930_paddr_to_memtype(unsigned int paddr)
@@ -752,7 +751,6 @@ static struct htc_battery_platform_data htc_battery_pdev_data = {
 	.overload_curr_thr_ma = 0,
 	.smooth_chg_full_delay_min = 1,
 	.shutdown_voltage_critiria_setting = 3400,
-	
 	.icharger.name = "pm8921",
 	.icharger.get_charging_source = pm8921_get_charging_source,
 	.icharger.get_charging_enabled = pm8921_get_charging_enabled,
@@ -761,7 +759,6 @@ static struct htc_battery_platform_data htc_battery_pdev_data = {
 	.icharger.set_pwrsrc_and_charger_enable =
 						pm8921_set_pwrsrc_and_charger_enable,
 	.icharger.set_limit_charge_enable = pm8921_limit_charge_enable,
-	.icharger.max_input_current = pm8921_set_hsml_target_ma,
 	.icharger.is_ovp = pm8921_is_charger_ovp,
 	.icharger.is_batt_temp_fault_disable_chg =
 						pm8921_is_batt_temp_fault_disable_chg,
@@ -769,9 +766,10 @@ static struct htc_battery_platform_data htc_battery_pdev_data = {
 						cable_detect_register_notifier,
 	.icharger.dump_all = pm8921_dump_all,
 	.icharger.get_attr_text = pm8921_charger_get_attr_text,
+	.icharger.max_input_current = pm8921_set_hsml_target_ma,
 	.icharger.is_safty_timer_timeout = pm8921_is_chg_safety_timer_timeout,
 	.icharger.is_battery_full_eoc_stop = pm8921_is_batt_full_eoc_stop,
-	
+	/* gauge */
 	.igauge.name = "pm8921",
 	.igauge.get_battery_voltage = pm8921_get_batt_voltage,
 	.igauge.get_battery_current = pm8921_bms_get_batt_current,
@@ -901,7 +899,7 @@ static struct pc_temp_ocv_lut  pc_temp_ocv_id_1 = {
 static struct sf_lut rbatt_sf_id_1 = {
 	.rows        = 19,
 	.cols        = 7,
-	
+
 	.row_entries = {-20,-10, 0, 10, 20, 30, 40},
 	.percent     = {100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10},
 	.sf          = {
@@ -939,7 +937,6 @@ struct pm8921_bms_battery_data  bms_battery_data_id_1 = {
 	.delta_rbatt_mohm   = 0,
 };
 
-
 static struct single_row_lut fcc_temp_id_2 = {
 	.x      = {-20,-10, 0, 10, 20, 30, 40},
 	.y      = {1980, 2000, 2020, 2030, 2060, 2060, 2060},
@@ -955,7 +952,7 @@ static struct single_row_lut fcc_sf_id_2 = {
 static struct sf_lut pc_sf_id_2 = {
 	.rows        = 1,
 	.cols        = 1,
-	
+
 	.row_entries = {0},
 	.percent     = {100},
 	.sf          = {
@@ -964,9 +961,9 @@ static struct sf_lut pc_sf_id_2 = {
 };
 
 static struct sf_lut rbatt_est_ocv_id_2 = {
-	.rows	= 1,
+	.rows		= 1,
 	.cols		= 2,
-	.row_entries		= {20, 40},
+	.row_entries	= {20, 40},
 	.percent	= {100},
 	.sf		= {
 			{140, 100}
@@ -1014,7 +1011,7 @@ static struct pc_temp_ocv_lut  pc_temp_ocv_id_2 = {
 static struct sf_lut rbatt_sf_id_2 = {
 	.rows           = 19,
 	.cols           = 7,
-	
+
 	.row_entries    = {-20,-10, 0, 10, 20, 30, 40},
 	.percent        = {100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10},
 	.sf             = {
@@ -1050,15 +1047,15 @@ struct pm8921_bms_battery_data  bms_battery_data_id_2 = {
 	.rbatt_sf_lut          = &rbatt_sf_id_2,
 	.rbatt_est_ocv_lut     = &rbatt_est_ocv_id_2,
 	.default_rbatt_mohm    = 250,
-	.delta_rbatt_mohm      = 0,
+	.delta_rbatt_mohm     = 0,
 };
 
 static struct htc_battery_cell htc_battery_cells[] = {
-	[0] = { 
+	[0] = {
 		.model_name = "ICP286083L1",
 		.capacity = 2100,
 		.id = 1,
-		.id_raw_min = 50, 
+		.id_raw_min = 50,
 		.id_raw_max = 204,
 		.type = HTC_BATTERY_CELL_TYPE_HV,
 		.voltage_max = 4340,
@@ -1066,7 +1063,7 @@ static struct htc_battery_cell htc_battery_cells[] = {
 		.chg_param = &chg_batt_params[1],
 		.gauge_param = &bms_battery_data_id_1,
 	},
-	[1] = { 
+	[1] = {
 		.model_name = "BL80100",
 		.capacity = 2100,
 		.id = 2,
@@ -1864,25 +1861,22 @@ static struct msm_spi_platform_data msm8930_qup_spi_gsbi10_pdata = {
 	.max_clock_speed = 27000000,
 };
 
-#ifdef CONFIG_USB_MSM_OTG_72K
-static struct msm_otg_platform_data msm_otg_pdata;
-#else
 extern unsigned int system_rev;
 static int msm_hsusb_vbus_power(bool on)
 {
 	if(system_rev >= XB) {
-		static int prev_on;
-		int rc;
+	static int prev_on;
+	int rc;
 
-		if (on == prev_on)
-			return 0;
+	if (on == prev_on)
+		return 0;
 
-		if (on) {
-			rc = gpio_request(MSM_BOOST_5V_EN, "USB_BOOST_5V");
-			if (rc) {
-				pr_err("'%s'(%d) gpio_request failed, rc=%d\n",
-					"HDMI_BOOST_5V", MSM_BOOST_5V_EN, rc);
-				return rc;
+	if (on) {
+		rc = gpio_request(MSM_BOOST_5V_EN, "USB_BOOST_5V");
+		if (rc) {
+			pr_err("'%s'(%d) gpio_request failed, rc=%d\n",
+				"HDMI_BOOST_5V", MSM_BOOST_5V_EN, rc);
+			return rc;
 			}
 			gpio_set_value(MSM_BOOST_5V_EN, 1);
 			pr_info("%s(on): success\n", __func__);
@@ -1892,7 +1886,7 @@ static int msm_hsusb_vbus_power(bool on)
 			pr_info("%s(off): success\n", __func__);
 		}
 
-		prev_on = on;
+	prev_on = on;
 	}
 	return 0;
 }
@@ -1911,8 +1905,8 @@ static struct msm_bus_vectors usb_max_vectors[] = {
 	{
 		.src = MSM_BUS_MASTER_SPS,
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab = 60000000,		
-		.ib = 960000000,	
+		.ab = 60000000,
+		.ib = 960000000,
 	},
 };
 
@@ -1951,7 +1945,7 @@ static struct msm_otg_platform_data msm_otg_pdata = {
 	.mode			= USB_OTG,
 	.otg_control		= OTG_PMIC_CONTROL,
 	.phy_type		= SNPS_28NM_INTEGRATED_PHY,
-	.vbus_power             = msm_hsusb_vbus_power,
+	.vbus_power		= msm_hsusb_vbus_power,
 	.power_budget		= 750,
 #ifdef CONFIG_MSM_BUS_SCALING
 	.bus_scale_table	= &usb_bus_scale_pdata,
@@ -1994,11 +1988,11 @@ static int usb_diag_update_pid_and_serial_num(uint32_t pid, const char *snum)
 
 	pr_debug("%s: dload:%p pid:%x serial_num:%s\n",
 				__func__, dload, pid, snum);
-	
+
 	dload->magic_struct.pid = PID_MAGIC_ID;
 	dload->pid = pid;
 
-	
+
 	dload->magic_struct.serial_num = 0;
 	if (!snum) {
 		memset(dload->serial_number, 0, SERIAL_NUMBER_LENGTH);
@@ -2534,7 +2528,7 @@ static struct synaptics_virtual_key zara_vk_data[] = {
 };
 
 static struct synaptics_i2c_rmi_platform_data syn_ts_3k_data[] = {
-	{ 	
+	{
 		.version = 0x3332,
 		.packrat_number = 1514368,
 		.abs_x_min = 0,
@@ -2597,7 +2591,7 @@ static struct synaptics_i2c_rmi_platform_data syn_ts_3k_data[] = {
 			0x82, 0x14, 0x64, 0x03, 0x06, 0x01, 0x18,
 		},
 	},
-	{ 	
+	{
 		.version = 0x3332,
 		.packrat_number = 1514368,
 		.abs_x_min = 0,
@@ -2660,7 +2654,7 @@ static struct synaptics_i2c_rmi_platform_data syn_ts_3k_data[] = {
 			0x82, 0x14, 0x64, 0x03, 0x06, 0x01, 0x18,
 		},
 	},
-	{ 	
+	{
 		.version = 0x3332,
 		.packrat_number = 1508458,
 		.abs_x_min = 0,
@@ -2786,7 +2780,7 @@ static struct synaptics_i2c_rmi_platform_data syn_ts_3k_data[] = {
 			0x82, 0x14, 0x3C, 0x03, 0x07,
 		},
 	},
-	{ 	
+	{
 		.version = 0x3332,
 		.packrat_number = 1498736,
 		.abs_x_min = 0,
@@ -2849,7 +2843,7 @@ static struct synaptics_i2c_rmi_platform_data syn_ts_3k_data[] = {
                         0x82, 0x14, 0x3C, 0x03, 0x07,
 		},
 	},
-	{ 	
+	{
 		.version = 0x3332,
 		.packrat_number = 1498736,
 		.abs_x_min = 0,
@@ -2912,7 +2906,7 @@ static struct synaptics_i2c_rmi_platform_data syn_ts_3k_data[] = {
                         0x82, 0x14, 0x3C, 0x03, 0x07,
 		},
 	},
-	{ 	
+	{
 		.version = 0x3332,
 		.packrat_number = 1473052,
 		.abs_x_min = 0,
@@ -2975,7 +2969,7 @@ static struct synaptics_i2c_rmi_platform_data syn_ts_3k_data[] = {
 			0x78, 0x14, 0x34, 0x03, 0x08,
 		},
 	},
-	{ 	
+	{
 		.version = 0x3332,
 		.packrat_number = 1473052,
 		.abs_x_min = 0,
@@ -3506,14 +3500,8 @@ static struct msm_thermal_data msm_thermal_pdata = {
 	.limit_freq = 918000,
 };
 
-#ifdef CONFIG_MSM_FAKE_BATTERY
-static struct platform_device fish_battery_device = {
-	.name = "fish_battery",
-};
-#endif
 
 #ifndef MSM8930_PHASE_2
-
 static struct platform_device msm8930_device_ext_5v_vreg __devinitdata = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= PM8921_MPP_PM_TO_SYS(7),
@@ -3594,7 +3582,6 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm_device_smd,
 	&msm8960_device_uart_gsbi3,
 	&msm8960_device_uart_gsbi8,
-	
 	&msm_device_saw_core0,
 	&msm_device_saw_core1,
 #ifndef MSM8930_PHASE_2
@@ -3619,9 +3606,8 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm8960_device_qup_i2c_gsbi9,
 	&msm8960_device_qup_i2c_gsbi12,
 	&msm_slim_ctrl,
-	&msm_device_wcnss_wlan,
 #if defined(CONFIG_QSEECOM)
-		&qseecom_device,
+	&qseecom_device,
 #endif
 
 #if defined(CONFIG_CRYPTO_DEV_QCRYPTO) || \
@@ -3637,20 +3623,16 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm_rotator_device,
 #endif
 	&msm_device_sps,
-#ifdef CONFIG_MSM_FAKE_BATTERY
-	&fish_battery_device,
-#endif
 #ifdef CONFIG_ANDROID_PMEM
 #ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
 	&msm8930_android_pmem_device,
 	&msm8930_android_pmem_adsp_device,
 	&msm8930_android_pmem_audio_device,
-#endif 
-#endif 
+#endif /*CONFIG_MSM_MULTIMEDIA_USE_ION*/
+#endif /*CONFIG_ANDROID_PMEM*/
 	&msm8930_fmem_device,
 	&msm_device_bam_dmux,
 	&msm_fm_platform_init,
-
 #ifdef CONFIG_HW_RANDOM_MSM
 	&msm_device_rng,
 #endif
@@ -3661,14 +3643,6 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm8930_ion_dev,
 #endif
 	&msm_device_tz_log,
-
-#ifdef CONFIG_MSM_QDSS
-	&msm_qdss_device,
-	&msm_etb_device,
-	&msm_tpiu_device,
-	&msm_funnel_device,
-	&msm_etm_device,
-#endif
 	&msm_device_dspcrashd_8960,
 	&msm8960_device_watchdog,
 	&msm8930_rtb_device,
@@ -3685,7 +3659,7 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm8960_device_cache_erp,
 	&msm8930_iommu_domain_device,
 	&msm_tsens_device,
-#ifdef CONFIG_BT 
+#ifdef CONFIG_BT
 	&msm_device_uart_dm6,
 	&zara_rfkill,
 #endif
@@ -3875,23 +3849,23 @@ struct i2c_registry {
 
 #ifdef CONFIG_ISL9519_CHARGER
 static struct isl_platform_data isl_data __initdata = {
-	.valid_n_gpio		= 0,	
-	.chg_detection_config	= NULL,	
+	.valid_n_gpio		= 0,
+	.chg_detection_config	= NULL,
 	.max_system_voltage	= 4200,
 	.min_system_voltage	= 3200,
-	.chgcurrent		= 1000, 
-	.term_current		= 400,	
+	.chgcurrent		= 1000,
+	.term_current		= 400,
 	.input_current		= 2048,
 };
 
 static struct i2c_board_info isl_charger_i2c_info[] __initdata = {
 	{
 		I2C_BOARD_INFO("isl9519q", 0x9),
-		.irq		= 0,	
+		.irq		= 0,
 		.platform_data	= &isl_data,
 	},
 };
-#endif 
+#endif
 
 #define ZARA_LAYOUTS			{\
 		{ { 0,  1, 0}, { 1,  0,  0}, {0, 0, -1} }, \
@@ -3914,7 +3888,7 @@ static int g_sensor_power_LPM(int on)
 		g_sensor_reg_l9 = regulator_get(NULL, "8038_l9_g_sensor");
 		if (IS_ERR(g_sensor_reg_l9)) {
 			pr_err("[GSNR][BMA250_WO_COMP] %s: Unable to get"
-				" '8038_l9_g_sensor' \n", __func__);
+			" '8038_l9_g_sensor' \n", __func__);
 			mutex_unlock(&sensor_lock);
 			pr_info("[GSNR][BMA250_WO_COMP] %s: sensor_lock unlock 1\n", __func__);
 			return -ENODEV;
@@ -4039,7 +4013,7 @@ static struct i2c_registry msm8960_i2c_devices[] __initdata = {
 	},
 #endif
 };
-#endif 
+#endif
 
 static void __init register_i2c_devices(void)
 {
@@ -4052,8 +4026,8 @@ static void __init register_i2c_devices(void)
 	msm8930_camera_i2c_devices.machs = I2C_SURF | I2C_FFA | I2C_FLUID | I2C_LIQUID | I2C_RUMI;
 	msm8930_camera_i2c_devices.bus = MSM_8930_GSBI4_QUP_I2C_BUS_ID;
 	if (system_rev ==0) { 
-		msm8930_camera_i2c_devices.info = zara_camera_board_info_XA.board_info;
-		msm8930_camera_i2c_devices.len = zara_camera_board_info_XA.num_i2c_board_info;
+	msm8930_camera_i2c_devices.info = zara_camera_board_info_XA.board_info;
+	msm8930_camera_i2c_devices.len = zara_camera_board_info_XA.num_i2c_board_info;
 	} else { 
 		msm8930_camera_i2c_devices.info = zara_camera_board_info_XB.board_info;
 		msm8930_camera_i2c_devices.len = zara_camera_board_info_XB.num_i2c_board_info;
@@ -4196,7 +4170,7 @@ static void __init zara_init(void)
 		zara_add_usb_devices();
 }
 
-#define SMLOG_MB_SIZE       8 * 1024 *1024 
+#define SMLOG_MB_SIZE       8 * 1024 *1024
 #define PHY_BASE_ADDR1  	CONFIG_PHYS_OFFSET
 #define SIZE_ADDR1		(136 * 1024 * 1024)
 #define SIZE_ADDR1_SMLOG	(SIZE_ADDR1 - SMLOG_MB_SIZE)

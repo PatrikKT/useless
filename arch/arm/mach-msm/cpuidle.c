@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -147,6 +147,13 @@ static void __init msm_cpuidle_set_states(void)
 
 	for (i = 0; i < ARRAY_SIZE(msm_cstates); i++) {
 		cstate = &msm_cstates[i];
+		/* We have an asymmetric CPU C-State in MSMs.
+		 * The primary CPU can do PC while all secondary cpus
+		 * can only do standalone PC as part of their idle LPM.
+		 * However, the secondary cpus can do PC when hotplugged
+		 * We do not care about the hotplug here.
+		 * Register the C-States available for Core0.
+		 */
 		if (cstate->cpu)
 			continue;
 
