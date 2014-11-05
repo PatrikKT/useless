@@ -1649,7 +1649,11 @@ static struct resource resources_qup_i2c_gsbi9[] = {
 
 struct platform_device msm8960_device_qup_i2c_gsbi9 = {
 	.name		= "qup_i2c",
+#ifdef CONFIG_MACH_ZARA
 	.id		= 9,
+#else
+	.id		= 0,
+#endif
 	.num_resources	= ARRAY_SIZE(resources_qup_i2c_gsbi9),
 	.resource	= resources_qup_i2c_gsbi9,
 };
